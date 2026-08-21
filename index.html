@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>메타몽 시뮬레이터 - Core Prototype 1</title>
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-title">메타몽 시뮬레이터</div>
+        <div class="brand-subtitle">Core Prototype 1</div>
+      </div>
+      <div id="topStats" class="top-stats"></div>
+    </header>
+
+    <div class="workspace">
+      <aside class="sidebar">
+        <nav id="nav" class="nav-list">
+          <button class="nav-button active" data-view="battle">전투</button>
+          <button class="nav-button" data-view="pokemon">포켓몬</button>
+          <button class="nav-button" data-view="growth">성장</button>
+          <button class="nav-button disabled" disabled>기술 <span>예정</span></button>
+          <button class="nav-button disabled" disabled>특성 <span>예정</span></button>
+          <button class="nav-button" data-view="rebirth">환생</button>
+          <button class="nav-button" data-view="settings">설정</button>
+        </nav>
+        <div class="sidebar-note">
+          <strong>현재 원칙</strong>
+          <span>진행도 0 시작</span>
+          <span>거리 1은 Decay 없음</span>
+          <span>특별폼 실제 출현은 아직 비활성</span>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <section id="view-battle" class="view active"></section>
+        <section id="view-pokemon" class="view"></section>
+        <section id="view-growth" class="view"></section>
+        <section id="view-rebirth" class="view"></section>
+        <section id="view-settings" class="view"></section>
+      </main>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
