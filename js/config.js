@@ -37,7 +37,11 @@ export const CONFIG = Object.freeze({
 
   battle: {
     // 모두 Core Prototype 테스트용 수치. 최종 전투 공식이 아님.
-    fullHealBeforeBattle: true,
+    // Rejected Draft 참고: 승리 시 즉시 완전회복. 패배/도주는 각각 회복 대기시간을 거친다.
+    fullHealBeforeBattle: false,
+    victoryRecoverySeconds: 0,
+    deathRecoverySeconds: 10,
+    fleeRecoverySeconds: 5,
     enemyBaseHp: 28,
     enemyBaseOffense: 7,
     enemyBaseDefense: 4,
@@ -85,6 +89,9 @@ export const CONFIG = Object.freeze({
     },
     distanceGrowth: 0.018,
     expBase: 3,
+    // Rejected Draft 기본 Reward Decay와 동일한 형태.
+    // n회 이미 처치한 대상의 다음 보상 배율 = 1 / (1 + n * repeatDecayFactor)
+    repeatDecayFactor: 1.0,
   },
 
   specialForms: {

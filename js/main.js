@@ -15,6 +15,9 @@ class GameApp {
     this.logs = [];
     this.autoRepeat = true;
     this.ui = null;
+    this.battleCooldownUntil = 0;
+    this.cooldownReason = null;
+    this.cooldownTicker = null;
 
     this.battle = new BattleController({
       onStart: enemy => {
@@ -64,6 +67,41 @@ class GameApp {
     }
   }
 
+  get battleCooldownRemainingMs() {
+    return Math.max(0, this.battleCooldownUntil - Date.now());
+  }
+
+  get battleCooldownRemainingSeconds() {
+    return this.battleCooldownRemainingMs / 1000;
+  }
+
+  startBattleCooldown(seconds, reason, recoverHpAtEnd = false) {
+    const durationMs = Math.max(0, seconds * 1000);
+    this.battleCooldownUntil = Date.now() + durationMs;
+    this.cooldownReason = reason;
+
+    clearInterval(this.cooldownTicker);
+    if (durationMs <= 0) {
+      if (recoverHpAtEnd) this.state.ditto.currentHp = this.state.ditto.maxHp;
+      this.battleCooldownUntil = 0;
+      this.cooldownReason = null;
+      this.render();
+      return;
+    }
+
+    this.cooldownTicker = setInterval(() => {
+      if (this.battleCooldownRemainingMs <= 0) {
+        clearInterval(this.cooldownTicker);
+        this.cooldownTicker = null;
+        if (recoverHpAtEnd) this.state.ditto.currentHp = this.state.ditto.maxHp;
+        this.battleCooldownUntil = 0;
+        this.cooldownReason = null;
+        saveGame(this.state);
+      }
+      this.render();
+    }, 100);
+  }
+
   get selectedPokemon() {
     return this.state?.run?.selectedPokemonId ? this.pokemonById.get(this.state.run.selectedPokemonId) : null;
   }
@@ -75,6 +113,10 @@ class GameApp {
 
   createNewRun(countAsRebirth = true) {
     this.battle.stop(false);
+    clearInterval(this.cooldownTicker);
+    this.cooldownTicker = null;
+    this.battleCooldownUntil = 0;
+    this.cooldownReason = null;
     if (countAsRebirth) this.state.rebirthCount += 1;
 
     this.pool = generateRunPool(this.data.pokemon, this.state.rarityProgress);
@@ -105,17 +147,30 @@ class GameApp {
   startBattle() {
     const pokemon = this.selectedPokemon;
     if (!pokemon || this.battle.running) return;
+    if (this.battleCooldownRemainingMs > 0) {
+      const label = this.cooldownReason === "defeat" ? "패배 회복" : "도주 페널티";
+      this.ui?.toast(`${label} 중 · ${this.battleCooldownRemainingSeconds.toFixed(1)}초`);
+      return;
+    }
     this.battle.start(this.state, pokemon);
   }
 
   stopBattle() {
-    this.battle.stop(true);
+    if (!this.battle.running) return;
+    this.battle.stop(false);
+    this.state.ditto.currentHp = this.state.ditto.maxHp;
+    this.startBattleCooldown(CONFIG.battle.fleeRecoverySeconds, "flee", false);
+    this.log(`전투에서 도주했습니다. ${CONFIG.battle.fleeRecoverySeconds}초 동안 재도전할 수 없습니다.`, "bad");
+    saveGame(this.state);
+    this.render();
   }
 
   onBattleFinish(result, enemy, pokemon) {
     if (result === "victory") {
       const resultData = processVictory(this.state, pokemon);
-      this.log(`${pokemon.name} 격파. ${resultData.rewards.map(formatReward).join(", ")}`, "good");
+      this.state.ditto.currentHp = this.state.ditto.maxHp;
+      const multiplierText = `${(resultData.rewardMultiplier * 100).toFixed(resultData.rewardMultiplier < 0.1 ? 1 : 0)}%`;
+      this.log(`${pokemon.name} 격파. 보상 배율 ${multiplierText} · ${resultData.rewards.map(formatReward).join(", ")}`, "good");
       this.log(`경험치 +${resultData.exp.gained}`, "good");
       if (resultData.exp.levelUps.length) this.log(`레벨 업 → Lv.${resultData.exp.levelUps.at(-1)}`, "progress");
       if (resultData.progressChange) {
@@ -128,7 +183,8 @@ class GameApp {
         this.battle.scheduleRepeat(() => this.startBattle());
       }
     } else {
-      this.log(`${pokemon.name}에게 패배. 다음 전투 시작 시 HP가 회복됩니다.`, "bad");
+      this.log(`${pokemon.name}에게 패배. ${CONFIG.battle.deathRecoverySeconds}초 후 HP가 완전히 회복됩니다.`, "bad");
+      this.startBattleCooldown(CONFIG.battle.deathRecoverySeconds, "defeat", true);
       saveGame(this.state);
       this.render();
     }

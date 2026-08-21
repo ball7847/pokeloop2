@@ -36,6 +36,23 @@ export function getPrototypeRewards(pokemon) {
   });
 }
 
+export function getRewardMultiplier(previousKills) {
+  const kills = Math.max(0, Number(previousKills) || 0);
+  const factor = Math.max(0, CONFIG.rewards.repeatDecayFactor ?? 1);
+  if (factor === 0) return 1;
+  return 1 / (1 + kills * factor);
+}
+
+export function getEffectiveRewards(pokemon, previousKills) {
+  const multiplier = getRewardMultiplier(previousKills);
+  return getPrototypeRewards(pokemon).map(reward => ({
+    ...reward,
+    baseAmount: reward.amount,
+    amount: reward.amount * multiplier,
+    multiplier,
+  }));
+}
+
 function applyRewards(ditto, rewards) {
   for (const reward of rewards) {
     ditto[reward.stat] += reward.amount;
@@ -45,9 +62,10 @@ function applyRewards(ditto, rewards) {
   }
 }
 
-function gainExp(state, pokemon) {
+function gainExp(state, pokemon, rewardMultiplier = 1) {
   const rarityMul = CONFIG.rewards.rarityMultiplier[pokemon.rarity] || 1;
-  const gained = Math.max(1, Math.round(CONFIG.rewards.expBase * rarityMul * (1 + pokemon.distance * 0.025)));
+  const raw = CONFIG.rewards.expBase * rarityMul * (1 + pokemon.distance * 0.025);
+  const gained = Math.max(0, Math.round(raw * rewardMultiplier));
   state.ditto.exp += gained;
   const levelUps = [];
 
@@ -71,12 +89,15 @@ function gainExp(state, pokemon) {
 }
 
 export function processVictory(state, pokemon) {
-  state.totalKills += 1;
-  state.run.killCounts[pokemon.id] = (state.run.killCounts[pokemon.id] || 0) + 1;
+  const previousKills = state.run.killCounts[pokemon.id] || 0;
+  const rewardMultiplier = getRewardMultiplier(previousKills);
 
-  const rewards = getPrototypeRewards(pokemon);
+  state.totalKills += 1;
+  state.run.killCounts[pokemon.id] = previousKills + 1;
+
+  const rewards = getEffectiveRewards(pokemon, previousKills);
   applyRewards(state.ditto, rewards);
-  const exp = gainExp(state, pokemon);
+  const exp = gainExp(state, pokemon, rewardMultiplier);
 
   let progressChange = null;
   if (pokemon.rarity !== "흔함") {
@@ -87,7 +108,7 @@ export function processVictory(state, pokemon) {
     }
   }
 
-  return { rewards, exp, progressChange };
+  return { rewards, exp, progressChange, rewardMultiplier, previousKills };
 }
 
 export function formatReward(reward) {

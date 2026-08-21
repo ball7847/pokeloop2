@@ -1,6 +1,6 @@
 import { CONFIG } from "./config.js";
 import { getAppearanceChance, summarizePool } from "./pool.js";
-import { formatReward, getPrototypeRewards } from "./progression.js";
+import { formatReward, getEffectiveRewards, getPrototypeRewards, getRewardMultiplier } from "./progression.js";
 
 function esc(value) {
   return String(value ?? "").replace(/[&<>'"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[ch]));
@@ -76,7 +76,11 @@ export class UI {
     const battle = this.app.battle.enemy;
     const d = this.app.state.ditto;
     const killCount = p ? (this.app.state.run.killCounts[p.id] || 0) : 0;
-    const rewards = p ? getPrototypeRewards(p) : [];
+    const rewardMultiplier = p ? getRewardMultiplier(killCount) : 1;
+    const rewards = p ? getEffectiveRewards(p, killCount) : [];
+    const cooldownSeconds = this.app.battleCooldownRemainingSeconds || 0;
+    const cooldownActive = cooldownSeconds > 0;
+    const cooldownLabel = this.app.cooldownReason === "defeat" ? "RECOVER" : "FLEE";
     const playerPct = Math.max(0, Math.min(100, d.currentHp / d.maxHp * 100));
     const enemyPct = battle ? Math.max(0, Math.min(100, battle.currentHp / battle.maxHp * 100)) : 100;
 
@@ -92,7 +96,7 @@ export class UI {
                   <div class="enemy-name">${esc(p.name)}</div>
                   <div class="meta-line">도감 #${String(p.dex).padStart(4,"0")} · 거리 ${p.distance} · 이번 런 처치 ${killCount}</div>
                   <span class="rarity-badge rarity-${esc(p.rarity)}">${esc(p.rarity)}</span>
-                  <div class="reward-title" style="margin-top:12px">REWARDS</div>
+                  <div class="reward-title" style="margin-top:12px">REWARDS · NEXT ${(rewardMultiplier * 100).toFixed(rewardMultiplier < 0.1 ? 1 : 0)}%</div>
                   <div class="reward-list">${rewards.map(r => `<span class="reward-chip">${formatReward(r)}</span>`).join("")}</div>
                 </div>
               </div>
@@ -101,14 +105,14 @@ export class UI {
                 <div class="health-row"><div class="health-label">DITTO</div><div class="health-track"><div class="health-fill player" style="width:${playerPct}%"></div></div><div class="health-number">${fmt(d.currentHp,1)} / ${fmt(d.maxHp,1)}</div></div>
               </div>
               <div class="battle-actions">
-                <button id="battleStart" class="btn primary" ${this.app.battle.running ? "disabled" : ""}>Battle</button>
-                <button id="battleStop" class="btn" ${this.app.battle.running ? "" : "disabled"}>Stop</button>
+                <button id="battleStart" class="btn primary" ${this.app.battle.running || cooldownActive ? "disabled" : ""}>${cooldownActive ? `${cooldownLabel} ${cooldownSeconds.toFixed(1)}s` : "Battle"}</button>
+                <button id="battleStop" class="btn" ${this.app.battle.running ? "" : "disabled"}>Flee</button>
                 <button id="choosePokemon" class="btn">Gallery</button>
               </div>
               <label class="inline-check"><input id="autoRepeat" type="checkbox" ${this.app.autoRepeat ? "checked" : ""}/> 승리 후 같은 포켓몬 자동 재전투</label>
             ` : `<div class="prototype-note">현재 선택된 포켓몬이 없습니다. 갤러리에서 이번 환생의 포켓몬을 선택하세요.</div><button id="choosePokemon" class="btn primary">Gallery</button>`}
           </div>
-          <div class="panel"><div class="prototype-note">전투 수치·레벨업·성장 보상은 Core Prototype 검증용 임시 규칙입니다. 희귀도/거리/출현 구조와 분리되어 있습니다.</div></div>
+          <div class="panel"><div class="prototype-note">전투 수치·레벨업·성장 보상 자체는 Core Prototype용 임시값입니다. 반복 보상은 Rejected Draft와 같은 기본 점감식(1 / (1 + 기존 처치 수))을 사용하며, 승리 시 완전회복·패배 시 10초·도주 시 5초 재도전 대기를 적용합니다.</div></div>
         </div>
         <div class="panel">
           <h2 class="panel-title">BATTLE LOG</h2>
@@ -140,6 +144,8 @@ export class UI {
       <div class="gallery-grid">${filtered.map(p => {
         const chance = getAppearanceChance(p, this.app.state.rarityProgress);
         const selected = this.app.state.run.selectedPokemonId === p.id;
+        const kills = this.app.state.run.killCounts[p.id] || 0;
+        const rewardMultiplier = getRewardMultiplier(kills);
         return `<article class="pokemon-card ${selected ? "selected" : ""}">
           <div class="card-top">
             <div class="card-art">#${String(p.dex).padStart(3,"0")}</div>
@@ -147,10 +153,10 @@ export class UI {
           </div>
           <div class="card-stats">
             <div class="mini-stat"><span>거리</span><strong>${p.distance}</strong></div>
-            <div class="mini-stat"><span>처치</span><strong>${this.app.state.run.killCounts[p.id] || 0}</strong></div>
+            <div class="mini-stat"><span>처치</span><strong>${kills}</strong></div>
             <div class="mini-stat"><span>출현</span><strong>${chance == null ? "확정" : `${(chance*100).toFixed(chance*100 < 0.01 ? 3 : 1)}%`}</strong></div>
           </div>
-          <div class="card-rewards"><div class="label">REWARDS</div><div class="value">${getPrototypeRewards(p).map(formatReward).join(" · ")}</div></div>
+          <div class="card-rewards"><div class="label">NEXT REWARDS · ${(rewardMultiplier * 100).toFixed(rewardMultiplier < 0.1 ? 1 : 0)}%</div><div class="value">${getEffectiveRewards(p, kills).map(formatReward).join(" · ")}</div></div>
           <div class="card-action"><button class="small-btn select-pokemon" data-id="${esc(p.id)}">${selected ? "선택됨" : "Challenge"}</button></div>
         </article>`;
       }).join("")}</div>`;
