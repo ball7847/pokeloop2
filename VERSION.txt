@@ -1,3 +1,1 @@
-Core Prototype 1
-Save version: 1
-Data: 1109 battle targets / 226 special forms
+Core Prototype 1 - UI Redesign v2

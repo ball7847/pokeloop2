@@ -35,6 +35,7 @@ export class UI {
 
   render() {
     this.renderTopStats();
+    this.renderRecentEvents();
     this.renderBattle();
     if (this.currentView === "pokemon") this.renderPokemon();
     if (this.currentView === "growth") this.renderGrowth();
@@ -44,13 +45,29 @@ export class UI {
 
   renderTopStats() {
     const d = this.app.state.ditto;
-    const stats = [
-      ["레벨", d.level], ["HP", `${fmt(d.currentHp,1)} / ${fmt(d.maxHp,1)}`],
-      ["공격", fmt(d.attack,2)], ["방어", fmt(d.defense,2)], ["특공", fmt(d.spAttack,2)],
-      ["특방", fmt(d.spDefense,2)], ["스피드", fmt(d.speed,2)], ["공격속도", `${fmt(d.attacksPerSecond,3)}/s`],
-      ["환생", this.app.state.rebirthCount],
+    const compact = [
+      ["LV", d.level], ["HP", `${fmt(d.currentHp,1)}/${fmt(d.maxHp,1)}`],
+      ["ATK", fmt(d.attack,2)], ["DEF", fmt(d.defense,2)], ["SPA", fmt(d.spAttack,2)],
+      ["SPD", fmt(d.spDefense,2)], ["SPE", fmt(d.speed,2)], ["APS", fmt(d.attacksPerSecond,3)],
     ];
-    document.querySelector("#topStats").innerHTML = stats.map(([label,value]) => `<div class="stat-card"><div class="stat-label">${label}</div><div class="stat-value">${value}</div></div>`).join("");
+    const left = document.querySelector("#leftStats");
+    if (left) left.innerHTML = compact.map(([label,value]) => `<div class="spec-card"><div class="label">${label}</div><div class="value">${value}</div></div>`).join("");
+
+    const top = document.querySelector("#topStats");
+    if (top) top.innerHTML = [
+      ["환생", this.app.state.rebirthCount],
+      ["런", this.app.state.run?.id || 1],
+      ["풀", this.app.pool.length],
+    ].map(([label,value]) => `<div class="top-resource"><div class="label">${label}</div><div class="value">${value}</div></div>`).join("");
+  }
+
+  renderRecentEvents() {
+    const el = document.querySelector("#recentEvents");
+    if (!el) return;
+    const logs = this.app.logs.slice(-7).reverse();
+    el.innerHTML = logs.length
+      ? logs.map(x => `<div class="event-item ${x.type || ""}">${esc(x.text)}</div>`).join("")
+      : `<div class="event-empty">아직 기록된 이벤트가 없습니다.</div>`;
   }
 
   renderBattle() {
@@ -64,37 +81,38 @@ export class UI {
     const enemyPct = battle ? Math.max(0, Math.min(100, battle.currentHp / battle.maxHp * 100)) : 100;
 
     el.innerHTML = `
-      <h1 class="page-title">전투</h1>
-      <p class="page-desc">이번 환생 풀에서 원하는 포켓몬을 골라 반복 처치하고 메타몽을 성장시킨다.</p>
+      <div class="page-header"><div><h1 class="page-title">BATTLE</h1><p class="page-desc">이번 환생 풀에서 원하는 포켓몬을 선택해 반복 파밍한다.</p></div><div class="page-count">RUN ${this.app.state.run?.id || 1}</div></div>
       <div class="grid-2">
         <div>
           <div class="panel battle-card">
             ${p ? `
-              <div class="battle-head">
-                <div><div class="enemy-name">${esc(p.name)}</div><div class="meta-line">도감 #${String(p.dex).padStart(4,"0")} · 거리 ${p.distance} · 이번 런 처치 ${killCount}</div></div>
-                <span class="rarity-badge rarity-${esc(p.rarity)}">${esc(p.rarity)}</span>
+              <div class="battle-hero">
+                <div class="enemy-placeholder"></div>
+                <div class="enemy-info">
+                  <div class="enemy-name">${esc(p.name)}</div>
+                  <div class="meta-line">도감 #${String(p.dex).padStart(4,"0")} · 거리 ${p.distance} · 이번 런 처치 ${killCount}</div>
+                  <span class="rarity-badge rarity-${esc(p.rarity)}">${esc(p.rarity)}</span>
+                  <div class="reward-title" style="margin-top:12px">REWARDS</div>
+                  <div class="reward-list">${rewards.map(r => `<span class="reward-chip">${formatReward(r)}</span>`).join("")}</div>
+                </div>
               </div>
-              <div class="health-row"><div class="health-label">상대 HP</div><div class="health-track"><div class="health-fill enemy" style="width:${enemyPct}%"></div></div><div class="health-number">${battle ? `${fmt(battle.currentHp,1)} / ${fmt(battle.maxHp,1)}` : "전투 대기"}</div></div>
-              <div class="health-row"><div class="health-label">메타몽 HP</div><div class="health-track"><div class="health-fill player" style="width:${playerPct}%"></div></div><div class="health-number">${fmt(d.currentHp,1)} / ${fmt(d.maxHp,1)}</div></div>
-              <div>
-                <div class="meta-line">프로토타입 성장 보상</div>
-                <div class="reward-list">${rewards.map(r => `<span class="reward-chip">${formatReward(r)}</span>`).join("")}</div>
+              <div class="health-block">
+                <div class="health-row"><div class="health-label">ENEMY</div><div class="health-track"><div class="health-fill enemy" style="width:${enemyPct}%"></div></div><div class="health-number">${battle ? `${fmt(battle.currentHp,1)} / ${fmt(battle.maxHp,1)}` : "READY"}</div></div>
+                <div class="health-row"><div class="health-label">DITTO</div><div class="health-track"><div class="health-fill player" style="width:${playerPct}%"></div></div><div class="health-number">${fmt(d.currentHp,1)} / ${fmt(d.maxHp,1)}</div></div>
               </div>
               <div class="battle-actions">
-                <button id="battleStart" class="btn primary" ${this.app.battle.running ? "disabled" : ""}>전투 시작</button>
-                <button id="battleStop" class="btn" ${this.app.battle.running ? "" : "disabled"}>중지</button>
-                <button id="choosePokemon" class="btn">다른 포켓몬 선택</button>
+                <button id="battleStart" class="btn primary" ${this.app.battle.running ? "disabled" : ""}>Battle</button>
+                <button id="battleStop" class="btn" ${this.app.battle.running ? "" : "disabled"}>Stop</button>
+                <button id="choosePokemon" class="btn">Gallery</button>
               </div>
               <label class="inline-check"><input id="autoRepeat" type="checkbox" ${this.app.autoRepeat ? "checked" : ""}/> 승리 후 같은 포켓몬 자동 재전투</label>
-            ` : `<div class="prototype-note">현재 선택된 포켓몬이 없습니다. 포켓몬 탭에서 이번 환생에 등장한 포켓몬을 선택하세요.</div><button id="choosePokemon" class="btn primary">포켓몬 목록 열기</button>`}
+            ` : `<div class="prototype-note">현재 선택된 포켓몬이 없습니다. 갤러리에서 이번 환생의 포켓몬을 선택하세요.</div><button id="choosePokemon" class="btn primary">Gallery</button>`}
           </div>
-          <div class="panel">
-            <div class="prototype-note">전투 수치·레벨업·성장 보상은 Core Prototype 검증용 임시 규칙입니다. 희귀도/거리/출현 구조와 분리되어 있어 나중에 전투 공식을 교체할 수 있습니다.</div>
-          </div>
+          <div class="panel"><div class="prototype-note">전투 수치·레벨업·성장 보상은 Core Prototype 검증용 임시 규칙입니다. 희귀도/거리/출현 구조와 분리되어 있습니다.</div></div>
         </div>
         <div class="panel">
-          <h2 class="panel-title">전투 기록</h2>
-          <div class="battle-log">${this.app.logs.length ? this.app.logs.map(x => `<div class="log-line ${x.type || ""}">${esc(x.text)}</div>`).join("") : `<div class="log-line">아직 전투 기록이 없습니다.</div>`}</div>
+          <h2 class="panel-title">BATTLE LOG</h2>
+          <div class="battle-log">${this.app.logs.length ? this.app.logs.slice().reverse().map(x => `<div class="log-line ${x.type || ""}">${esc(x.text)}</div>`).join("") : `<div class="log-line">아직 전투 기록이 없습니다.</div>`}</div>
         </div>
       </div>`;
 
@@ -114,21 +132,28 @@ export class UI {
     }).sort((a,b) => CONFIG.rarityOrder.indexOf(a.rarity) - CONFIG.rarityOrder.indexOf(b.rarity) || a.distance - b.distance || a.dex - b.dex);
 
     el.innerHTML = `
-      <h1 class="page-title">이번 환생 포켓몬</h1>
-      <p class="page-desc">한 포켓몬은 이번 런 풀에 한 항목으로 존재하며, 선택한 뒤 반복 전투할 수 있다.</p>
-      <div class="toolbar">
+      <div class="page-header"><div><h1 class="page-title">GALLERY</h1><p class="page-desc">이번 환생에 등장한 포켓몬. 무엇을 반복해서 잡을지가 이번 빌드를 결정한다.</p></div><div class="page-count">${filtered.length} / ${pool.length}</div></div>
+      <div class="gallery-toolbar">
         <input id="pokeSearch" class="input" placeholder="이름 또는 도감번호 검색" value="${esc(this.filters.search)}" />
         <select id="rarityFilter" class="select"><option>전체</option>${CONFIG.rarityOrder.map(r => `<option ${this.filters.rarity===r?"selected":""}>${r}</option>`).join("")}</select>
-        <span class="meta-line">표시 ${filtered.length} / 전체 ${pool.length}</span>
       </div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>포켓몬</th><th>희귀도</th><th>거리</th><th>이번 런 처치</th><th>현재 출현확률</th><th>임시 성장 보상</th><th></th></tr></thead>
-        <tbody>${filtered.map(p => {
-          const chance = getAppearanceChance(p, this.app.state.rarityProgress);
-          const selected = this.app.state.run.selectedPokemonId === p.id;
-          return `<tr class="${selected ? "selected-row" : ""}"><td><strong>${esc(p.name)}</strong><div class="meta-line">#${String(p.dex).padStart(4,"0")} · ${esc(p.id)}</div></td><td><span class="rarity-badge rarity-${esc(p.rarity)}">${esc(p.rarity)}</span></td><td>${p.distance}</td><td>${this.app.state.run.killCounts[p.id] || 0}</td><td>${chance == null ? "거리별 1종 확정" : `${(chance*100).toFixed(chance*100 < 0.01 ? 4 : 2)}%`}</td><td>${getPrototypeRewards(p).map(formatReward).join(" · ")}</td><td><button class="small-btn select-pokemon" data-id="${esc(p.id)}">선택</button></td></tr>`;
-        }).join("")}</tbody>
-      </table></div>`;
+      <div class="gallery-grid">${filtered.map(p => {
+        const chance = getAppearanceChance(p, this.app.state.rarityProgress);
+        const selected = this.app.state.run.selectedPokemonId === p.id;
+        return `<article class="pokemon-card ${selected ? "selected" : ""}">
+          <div class="card-top">
+            <div class="card-art">#${String(p.dex).padStart(3,"0")}</div>
+            <div><div class="card-name">${esc(p.name)}</div><div class="card-dex">${esc(p.id)}</div><span class="rarity-badge rarity-${esc(p.rarity)}">${esc(p.rarity)}</span></div>
+          </div>
+          <div class="card-stats">
+            <div class="mini-stat"><span>거리</span><strong>${p.distance}</strong></div>
+            <div class="mini-stat"><span>처치</span><strong>${this.app.state.run.killCounts[p.id] || 0}</strong></div>
+            <div class="mini-stat"><span>출현</span><strong>${chance == null ? "확정" : `${(chance*100).toFixed(chance*100 < 0.01 ? 3 : 1)}%`}</strong></div>
+          </div>
+          <div class="card-rewards"><div class="label">REWARDS</div><div class="value">${getPrototypeRewards(p).map(formatReward).join(" · ")}</div></div>
+          <div class="card-action"><button class="small-btn select-pokemon" data-id="${esc(p.id)}">${selected ? "선택됨" : "Challenge"}</button></div>
+        </article>`;
+      }).join("")}</div>`;
 
     el.querySelector("#pokeSearch")?.addEventListener("input", e => { this.filters.search = e.target.value; this.renderPokemon(); });
     el.querySelector("#rarityFilter")?.addEventListener("change", e => { this.filters.rarity = e.target.value; this.renderPokemon(); });
@@ -141,8 +166,7 @@ export class UI {
   renderGrowth() {
     const el = document.querySelector("#view-growth");
     el.innerHTML = `
-      <h1 class="page-title">성장</h1>
-      <p class="page-desc">희귀도별 거리 진행도는 영구 저장된다. 더 먼 거리 포켓몬을 최초 격파하면 중간 거리를 건너뛰고 즉시 그 거리까지 상승한다.</p>
+      <div class="page-header"><div><h1 class="page-title">GROWTH</h1><p class="page-desc">희귀도별 거리 진행도는 영구 저장된다. 먼 거리 포켓몬 격파 시 즉시 점프한다.</p></div></div>
       <div class="progress-grid">${CONFIG.rarityOrder.filter(r => r !== "흔함").map(r => {
         const p = this.app.state.rarityProgress[r] || 0;
         const max = CONFIG.rarity[r].maxDistance;
@@ -158,8 +182,7 @@ export class UI {
     const el = document.querySelector("#view-rebirth");
     const sum = summarizePool(this.app.pool);
     el.innerHTML = `
-      <h1 class="page-title">환생</h1>
-      <p class="page-desc">현재 런의 메타몽 성장과 이번 런 처치 수를 초기화하고 새로운 포켓몬 풀을 생성한다. 희귀도별 거리 진행도와 환생 횟수는 유지된다.</p>
+      <div class="page-header"><div><h1 class="page-title">REBIRTH</h1><p class="page-desc">현재 런을 비우고 새로운 포켓몬 풀을 생성한다. 거리 진행도는 유지된다.</p></div></div>
       <div class="summary-grid">${CONFIG.rarityOrder.map(r => `<div class="summary-card"><div class="big rarity-${r}">${sum[r] || 0}</div><div class="label">${r}</div></div>`).join("")}</div>
       <div class="panel">
         <h2 class="panel-title">현재 Core Prototype의 환생 처리</h2>
@@ -173,8 +196,7 @@ export class UI {
   renderSettings() {
     const el = document.querySelector("#view-settings");
     el.innerHTML = `
-      <h1 class="page-title">설정 / 개발 정보</h1>
-      <p class="page-desc">GitHub Pages 정적 배포 기준. 서버 없이 브라우저 localStorage를 사용한다.</p>
+      <div class="page-header"><div><h1 class="page-title">SETTINGS</h1><p class="page-desc">GitHub Pages 정적 배포 기준. 브라우저 localStorage를 사용한다.</p></div></div>
       <div class="panel">
         <div class="setting-row"><div class="setting-info"><strong>포켓몬 데이터</strong><span>XLSX에서 변환된 기본 전투 대상</span></div><strong>${this.app.data.pokemon.length.toLocaleString()}종</strong></div>
         <div class="setting-row"><div class="setting-info"><strong>특별한 폼 데이터</strong><span>연결 구조만 로딩. 실제 대체 출현은 아직 비활성</span></div><strong>${this.app.data.forms.length.toLocaleString()}개</strong></div>

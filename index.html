@@ -7,33 +7,51 @@
   <link rel="stylesheet" href="./css/style.css" />
 </head>
 <body>
-  <div id="app" class="app-shell">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-title">메타몽 시뮬레이터</div>
-        <div class="brand-subtitle">Core Prototype 1</div>
-      </div>
-      <div id="topStats" class="top-stats"></div>
-    </header>
+  <div id="app" class="game-shell">
+    <aside class="player-sidebar">
+      <header class="side-brand">
+        <h1>METAMON</h1>
+        <p>DITTO SIMULATOR</p>
+      </header>
 
-    <div class="workspace">
-      <aside class="sidebar">
-        <nav id="nav" class="nav-list">
+      <section class="portrait-section">
+        <div class="ditto-portrait" aria-label="메타몽 임시 초상화">
+          <div class="ditto-body"><span class="eye e1"></span><span class="eye e2"></span><span class="mouth"></span></div>
+        </div>
+        <div class="portrait-caption">메타몽</div>
+      </section>
+
+      <section class="side-section">
+        <div class="section-heading">CURRENT SPECS</div>
+        <div id="leftStats" class="spec-grid"></div>
+      </section>
+
+      <section class="side-section fundamentals">
+        <div class="section-heading">FUNDAMENTALS</div>
+        <div class="fundamental-list">
+          <div><span>진행 시작</span><strong>0</strong></div>
+          <div><span>거리 1 Decay</span><strong>없음</strong></div>
+          <div><span>특별폼</span><strong>연결만</strong></div>
+        </div>
+      </section>
+    </aside>
+
+    <div class="center-column">
+      <header class="resource-header">
+        <div class="resource-row">
+          <div class="run-message">잡고, 흡수하고, 더 멀리 간다.</div>
+          <div id="topStats" class="top-stats"></div>
+        </div>
+        <nav id="nav" class="top-nav">
           <button class="nav-button active" data-view="battle">전투</button>
-          <button class="nav-button" data-view="pokemon">포켓몬</button>
+          <button class="nav-button" data-view="pokemon">갤러리</button>
           <button class="nav-button" data-view="growth">성장</button>
           <button class="nav-button disabled" disabled>기술 <span>예정</span></button>
           <button class="nav-button disabled" disabled>특성 <span>예정</span></button>
           <button class="nav-button" data-view="rebirth">환생</button>
           <button class="nav-button" data-view="settings">설정</button>
         </nav>
-        <div class="sidebar-note">
-          <strong>현재 원칙</strong>
-          <span>진행도 0 시작</span>
-          <span>거리 1은 Decay 없음</span>
-          <span>특별폼 실제 출현은 아직 비활성</span>
-        </div>
-      </aside>
+      </header>
 
       <main class="main-panel">
         <section id="view-battle" class="view active"></section>
@@ -43,6 +61,32 @@
         <section id="view-settings" class="view"></section>
       </main>
     </div>
+
+    <aside class="protocol-sidebar">
+      <header class="protocol-header">
+        <h2>PROTOCOLS</h2>
+        <p>런 통제 시스템</p>
+      </header>
+      <div class="protocol-card locked">
+        <strong>Targeted Hunt</strong>
+        <span>특정 포켓몬 출현 보정</span>
+        <small>추후 해금</small>
+      </div>
+      <div class="protocol-card locked">
+        <strong>Guaranteed Spawn</strong>
+        <span>다음 환생 등장 보장</span>
+        <small>추후 해금</small>
+      </div>
+      <div class="protocol-card locked">
+        <strong>Auto Priority</strong>
+        <span>자동 파밍 우선순위</span>
+        <small>추후 해금</small>
+      </div>
+      <section class="recent-events">
+        <div class="section-heading">RECENT EVENTS</div>
+        <div id="recentEvents" class="event-list"></div>
+      </section>
+    </aside>
   </div>
 
   <div id="toast" class="toast" aria-live="polite"></div>
