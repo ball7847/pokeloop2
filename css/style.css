@@ -730,3 +730,196 @@ html, body, body * {
   line-height: 1.35;
 }
 
+/* v1.12 — overall readability pass
+   Pokemon DPPt has a visually small x-height, so the UI needs a higher baseline. */
+
+/* Global baseline */
+html {
+  font-size: 16px;
+}
+body {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* General text-bearing controls */
+button,
+input,
+select,
+textarea {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+/* Top bars / tabs / summary */
+.topbar,
+.topbar *,
+.resource-strip,
+.resource-strip *,
+.nav-tabs,
+.nav-tabs * {
+  font-size: 13px;
+}
+.nav-button {
+  font-size: 13px;
+  min-height: 34px;
+}
+.nav-button span {
+  font-size: 11px;
+}
+.summary-card .label {
+  font-size: 12px;
+}
+.summary-card .value,
+.summary-card strong {
+  font-size: 14px;
+}
+
+/* Main section headers */
+.section-title,
+.panel-title,
+.gallery-header h2,
+.battle-header h2,
+.protocol-header h2 {
+  line-height: 1.15;
+}
+
+/* Gallery/search */
+.gallery-toolbar,
+.gallery-toolbar * {
+  font-size: 13px;
+}
+.input,
+.select {
+  font-size: 13px;
+  min-height: 34px;
+}
+.meta-line {
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* Pokemon cards */
+.pokemon-card {
+  min-height: 236px;
+}
+.card-name {
+  font-size: 18px;
+  line-height: 1.2;
+}
+.card-dex {
+  font-size: 12px;
+  line-height: 1.45;
+}
+.rarity-badge {
+  font-size: 11px;
+}
+.mini-stat span {
+  font-size: 11px;
+}
+.mini-stat strong {
+  font-size: 13px;
+}
+.card-rewards .label,
+.reward-title {
+  font-size: 12px;
+}
+.card-rewards .value,
+.reward-chip {
+  font-size: 12px;
+  line-height: 1.55;
+}
+.small-btn {
+  font-size: 13px;
+  min-height: 34px;
+}
+.pokemon-card.absorbed::after {
+  font-size: 11px;
+}
+
+/* Battle screen */
+.battle-card,
+.battle-card * {
+  font-size: 13px;
+}
+.battle-card h3,
+.enemy-name,
+.target-name {
+  font-size: 19px;
+  line-height: 1.2;
+}
+.battle-meta,
+.battle-reward,
+.battle-note,
+.battle-status {
+  font-size: 13px;
+  line-height: 1.55;
+}
+.hp-label,
+.hp-value {
+  font-size: 12px;
+}
+.battle-actions button {
+  font-size: 13px;
+  min-height: 36px;
+}
+.battle-log,
+.battle-log * {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Left player panel */
+.player-panel,
+.player-panel * {
+  font-size: 13px;
+}
+.spec-card .label {
+  font-size: 12px;
+}
+.spec-card .value {
+  font-size: 16px;
+}
+.fundamental-list > div,
+.fundamental-list strong {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Right sidebar */
+.protocol-header p {
+  font-size: 12px;
+}
+.protocol-card strong {
+  font-size: 12px;
+}
+.protocol-card span {
+  font-size: 12px;
+  line-height: 1.55;
+}
+.protocol-card small {
+  font-size: 11px;
+}
+.event-item {
+  font-size: 13px;
+  line-height: 1.65;
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+.event-empty {
+  font-size: 12px;
+}
+
+/* Settings/growth panels and generic prose */
+.settings-panel,
+.settings-panel *,
+.growth-panel,
+.growth-panel *,
+.info-box,
+.info-box *,
+.notice-box,
+.notice-box * {
+  font-size: 13px;
+  line-height: 1.55;
+}
+
