@@ -923,3 +923,262 @@ textarea {
   line-height: 1.55;
 }
 
+/* v1.13 — stronger readability: size + contrast + hierarchy
+   Tuned against Rejected Draft bright-mode readability. */
+
+/* Base text contrast */
+:root {
+  --text: #163447;
+  --text-strong: #0b2230;
+  --text-muted: #355c70;
+}
+
+body {
+  color: var(--text);
+}
+
+/* Generic text contrast */
+p,
+span,
+small,
+label,
+button,
+input,
+select,
+textarea {
+  color: var(--text);
+}
+
+small,
+.muted,
+.subtle,
+.help-text,
+.meta-line,
+.card-dex,
+.protocol-card small,
+.summary-card .label,
+.spec-card .label,
+.mini-stat span,
+.card-rewards .label,
+.reward-title {
+  color: var(--text-muted);
+}
+
+/* Stronger titles / important values */
+h1, h2, h3, h4,
+.card-name,
+.enemy-name,
+.target-name,
+.spec-card .value,
+.summary-card .value,
+.summary-card strong,
+.mini-stat strong,
+.card-rewards .value,
+.reward-chip,
+.fundamental-list strong,
+.protocol-card strong {
+  color: var(--text-strong);
+}
+
+/* Main headings */
+.gallery-header h2,
+.battle-header h2,
+.protocol-header h2,
+.section-title,
+.panel-title {
+  font-size: 21px;
+  line-height: 1.15;
+}
+
+/* Top navigation */
+.nav-button {
+  font-size: 14px;
+  font-weight: 700;
+}
+.nav-button span {
+  font-size: 12px;
+}
+.topbar,
+.topbar *,
+.resource-strip,
+.resource-strip * {
+  font-size: 14px;
+}
+.summary-card .label {
+  font-size: 13px;
+}
+.summary-card .value,
+.summary-card strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Search / filter / helper text */
+.gallery-toolbar,
+.gallery-toolbar * {
+  font-size: 14px;
+}
+.input,
+.select {
+  font-size: 14px;
+  min-height: 36px;
+}
+.meta-line {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Pokemon cards */
+.pokemon-card {
+  min-height: 246px;
+}
+.card-name {
+  font-size: 20px;
+  line-height: 1.18;
+  font-weight: 700;
+}
+.card-dex {
+  font-size: 13px;
+  line-height: 1.45;
+}
+.rarity-badge {
+  font-size: 12px;
+  font-weight: 700;
+}
+.mini-stat span {
+  font-size: 12px;
+}
+.mini-stat strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+.card-rewards .label,
+.reward-title {
+  font-size: 13px;
+  line-height: 1.4;
+}
+.card-rewards .value,
+.reward-chip {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.small-btn {
+  font-size: 14px;
+  font-weight: 700;
+  min-height: 36px;
+}
+.pokemon-card.absorbed::after {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Left player panel */
+.player-panel,
+.player-panel * {
+  font-size: 14px;
+}
+.spec-card .label {
+  font-size: 13px;
+  font-weight: 700;
+}
+.spec-card .value {
+  font-size: 17px;
+  font-weight: 700;
+}
+.fundamental-list > div,
+.fundamental-list strong {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Battle screen */
+.battle-card,
+.battle-card * {
+  font-size: 14px;
+}
+.battle-card h3,
+.enemy-name,
+.target-name {
+  font-size: 20px;
+  font-weight: 700;
+}
+.battle-meta,
+.battle-reward,
+.battle-note,
+.battle-status {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.hp-label,
+.hp-value {
+  font-size: 13px;
+  font-weight: 700;
+}
+.battle-actions button {
+  font-size: 14px;
+  font-weight: 700;
+  min-height: 38px;
+}
+.battle-log,
+.battle-log * {
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+/* Right sidebar */
+.protocol-header p {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.protocol-card strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+.protocol-card span {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.protocol-card small {
+  font-size: 12px;
+}
+.event-item {
+  font-size: 14px;
+  line-height: 1.7;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  color: var(--text-strong);
+}
+.event-item strong {
+  font-weight: 700;
+}
+.event-empty {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Generic panels */
+.settings-panel,
+.settings-panel *,
+.growth-panel,
+.growth-panel *,
+.info-box,
+.info-box *,
+.notice-box,
+.notice-box * {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+/* Buttons globally: stronger labeling */
+button {
+  font-weight: 700;
+}
+
+/* Keep decorative headings from becoming oversized */
+.brand-title,
+.logo-title,
+.protocol-title {
+  letter-spacing: 0;
+}
+
