@@ -1,3 +1,11 @@
+@font-face {
+  font-family: "Pokemon DPPt";
+  src: url("../assets/fonts/pokemon-dppt.otf") format("opentype");
+  font-style: normal;
+  font-weight: 100 1000;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
   --bg: #d9f2fb;
@@ -592,3 +600,9 @@ button { color: inherit; }
   font: 1000 42px/1 ui-monospace, monospace;
 }
 .upgrade-panel .btn { margin-top: auto; }
+
+
+/* v1.9 — Pokemon DPPt UI font */
+html, body, body * {
+  font-family: "Pokemon DPPt", Pretendard, "Noto Sans KR", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
