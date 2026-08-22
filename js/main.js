@@ -13,7 +13,8 @@ class GameApp {
     this.pool = [];
     this.state = null;
     this.logs = [];
-    this.autoRepeat = true;
+    this.events = [];
+    this.autoRepeat = false;
     this.ui = null;
     this.battleCooldownUntil = 0;
     this.cooldownReason = null;
@@ -21,13 +22,13 @@ class GameApp {
 
     this.battle = new BattleController({
       onStart: enemy => {
-        this.log(`${enemy.name} 전투 시작.`, "");
+        this.battleLog(`${enemy.name} 전투 시작.`);
         this.render();
       },
-      onLog: text => this.log(text),
+      onLog: text => this.battleLog(text),
       onUpdate: () => this.render(),
       onFinish: (result, enemy, pokemon) => this.onBattleFinish(result, enemy, pokemon),
-      onStop: () => { this.log("전투를 중지했습니다."); this.render(); },
+      onStop: () => { this.battleLog("전투를 중지했습니다."); this.render(); },
     });
   }
 
@@ -47,13 +48,13 @@ class GameApp {
       this.state = loadSave() || createDefaultState();
       this.ui = new UI(this);
 
-      if (!this.state.run.poolIds?.length) {
-        this.createNewRun(false);
-      } else {
-        this.restorePoolFromSave();
-      }
+      if (!this.state.run.poolIds?.length) this.createNewRun(false);
+      else this.restorePoolFromSave();
 
-      this.logs = Array.isArray(this.state.run.battleLog) ? [...this.state.run.battleLog].slice(-80) : [];
+      this.logs = Array.isArray(this.state.run.battleLog) ? [...this.state.run.battleLog].slice(-120) : [];
+      this.events = Array.isArray(this.state.run.recentEvents) ? [...this.state.run.recentEvents].slice(-40) : [];
+      this.autoRepeat = false;
+
       if (!this.state.run.selectedPokemonId || !this.pokemonById.has(this.state.run.selectedPokemonId) || !this.isPokemonRevealed(this.state.run.selectedPokemonId)) {
         this.state.run.selectedPokemonId = this.revealedPool[0]?.id || null;
       }
@@ -67,13 +68,8 @@ class GameApp {
     }
   }
 
-  get battleCooldownRemainingMs() {
-    return Math.max(0, this.battleCooldownUntil - Date.now());
-  }
-
-  get battleCooldownRemainingSeconds() {
-    return this.battleCooldownRemainingMs / 1000;
-  }
+  get battleCooldownRemainingMs() { return Math.max(0, this.battleCooldownUntil - Date.now()); }
+  get battleCooldownRemainingSeconds() { return this.battleCooldownRemainingMs / 1000; }
 
   startBattleCooldown(seconds, reason, recoverHpAtEnd = false) {
     const durationMs = Math.max(0, seconds * 1000);
@@ -105,14 +101,9 @@ class GameApp {
   get selectedPokemon() {
     return this.state?.run?.selectedPokemonId ? this.pokemonById.get(this.state.run.selectedPokemonId) : null;
   }
-
-  get explorationRange() {
-    return explorationRangeForLevel(this.state?.upgrades?.explorationLevel || 0);
-  }
-
-  get absorptionLimit() {
-    return absorptionLimitForLevel(this.state?.upgrades?.absorptionLevel || 0);
-  }
+  get explorationRange() { return explorationRangeForLevel(this.state?.upgrades?.explorationLevel || 0); }
+  get absorptionLimit() { return absorptionLimitForLevel(this.state?.upgrades?.absorptionLevel || 0); }
+  get autoRepeatUnlocked() { return Boolean(this.state?.upgrades?.autoRepeatUnlocked); }
 
   get revealedPool() {
     const stored = Math.max(0, this.state?.run?.revealedCount || 0);
@@ -120,9 +111,7 @@ class GameApp {
     return this.pool.slice(0, visibleCount);
   }
 
-  isPokemonRevealed(id) {
-    return this.revealedPool.some(p => p.id === id);
-  }
+  isPokemonRevealed(id) { return this.revealedPool.some(p => p.id === id); }
 
   restorePoolFromSave() {
     this.pool = (this.state.run.poolIds || []).map(id => this.pokemonById.get(id)).filter(Boolean);
@@ -131,8 +120,8 @@ class GameApp {
       return;
     }
     if (!this.state.run.revealedCount) {
-      const absorbed = this.pool.reduce((n, p) => n + ((this.state.run.killCounts[p.id] || 0) >= this.absorptionLimit ? 1 : 0), 0);
-      this.state.run.revealedCount = Math.min(this.pool.length, this.explorationRange + absorbed);
+      const defeatedOnce = this.pool.reduce((n, p) => n + ((this.state.run.killCounts[p.id] || 0) >= 1 ? 1 : 0), 0);
+      this.state.run.revealedCount = Math.min(this.pool.length, this.explorationRange + defeatedOnce);
     } else {
       this.state.run.revealedCount = Math.max(this.state.run.revealedCount, this.explorationRange);
     }
@@ -144,6 +133,7 @@ class GameApp {
     this.cooldownTicker = null;
     this.battleCooldownUntil = 0;
     this.cooldownReason = null;
+    this.autoRepeat = false;
     if (countAsRebirth) this.state.rebirthCount += 1;
 
     this.pool = generateRunPool(this.data.pokemon, this.state.rarityProgress);
@@ -155,12 +145,13 @@ class GameApp {
       revealedCount: Math.min(this.pool.length, this.explorationRange),
       selectedPokemonId: this.pool[0]?.id || null,
       battleLog: [],
+      recentEvents: [],
     };
 
-    // Core Prototype 임시 환생 초기화 범위.
     this.state.ditto = createDefaultState().ditto;
     this.logs = [];
-    this.log(`새 런 생성: 포켓몬 ${this.pool.length}종. 흔함은 거리 1~50에서 정확히 50종.`, "progress");
+    this.events = [];
+    this.event(`새 런이 시작되었습니다. 초기 탐색 대상 ${this.revealedPool.length}종이 확인되었습니다.`, "progress");
     saveGame(this.state);
   }
 
@@ -188,9 +179,17 @@ class GameApp {
     this.battle.stop(false);
     this.state.ditto.currentHp = this.state.ditto.maxHp;
     this.startBattleCooldown(CONFIG.battle.fleeRecoverySeconds, "flee", false);
-    this.log(`전투에서 도주했습니다. ${CONFIG.battle.fleeRecoverySeconds}초 동안 재도전할 수 없습니다.`, "bad");
+    this.battleLog(`전투에서 도주. ${CONFIG.battle.fleeRecoverySeconds}초 동안 재도전할 수 없습니다.`, "bad");
+    this.event(`${this.selectedPokemon?.name || "포켓몬"}과의 전투에서 무사히 도망쳤습니다.`, "bad");
     saveGame(this.state);
     this.render();
+  }
+
+  revealNextPokemon() {
+    const before = Math.max(this.explorationRange, this.state.run.revealedCount || 0);
+    if (before >= this.pool.length) return null;
+    this.state.run.revealedCount = Math.min(this.pool.length, before + 1);
+    return this.pool[this.state.run.revealedCount - 1] || null;
   }
 
   onBattleFinish(result, enemy, pokemon) {
@@ -198,24 +197,39 @@ class GameApp {
       const resultData = processVictory(this.state, pokemon, this.absorptionLimit);
       this.state.ditto.currentHp = this.state.ditto.maxHp;
       const multiplierText = `${(resultData.rewardMultiplier * 100).toFixed(resultData.rewardMultiplier < 0.1 ? 1 : 0)}%`;
-      this.log(`${pokemon.name} 격파. 보상 배율 ${multiplierText} · ${resultData.rewards.map(formatReward).join(", ")}`, "good");
-      this.log(`경험치 +${resultData.exp.gained} · 연구 포인트 +${resultData.research.toFixed(2)}`, "good");
-      if (resultData.exp.levelUps.length) this.log(`레벨 업 → Lv.${resultData.exp.levelUps.at(-1)}`, "progress");
+      const rewardText = resultData.rewards.length ? resultData.rewards.map(formatReward).join(", ") : "능력치 보상 없음";
+      const researchText = resultData.research > 0 ? ` · 연구 포인트 +${resultData.research.toFixed(2)}` : "";
+      this.battleLog(`${pokemon.name} 격파. 보상 배율 ${multiplierText} · ${rewardText}`, "good");
+      this.battleLog(`경험치 +${resultData.exp.gained}${researchText}`, "good");
+      this.event(`${pokemon.name}을(를) 쓰러뜨렸습니다. (${this.state.run.killCounts[pokemon.id]}/${this.absorptionLimit})`, "good");
+
+      if (resultData.firstVictory) {
+        const newlyRevealed = this.revealNextPokemon();
+        if (newlyRevealed) {
+          this.event(`탐색이 진행되어 ${newlyRevealed.name}이(가) 새롭게 나타났습니다.`, "progress");
+        }
+      }
       if (resultData.newlyAbsorbed) {
-        this.state.run.revealedCount = Math.min(this.pool.length, Math.max(this.state.run.revealedCount || 0, this.explorationRange) + 1);
-        this.log(`${pokemon.name} 흡수 완료 (${this.absorptionLimit}회). 새로운 탐색 대상이 공개됩니다.`, "progress");
+        this.event(`${pokemon.name}의 흡수 한계 ${this.absorptionLimit}회를 채웠습니다. 이후에는 경험치만 획득합니다.`, "progress");
+      }
+      if (resultData.exp.levelUps.length) {
+        this.battleLog(`레벨 업 → Lv.${resultData.exp.levelUps.at(-1)}`, "progress");
+        this.event(`메타몽이 Lv.${resultData.exp.levelUps.at(-1)}에 도달했습니다.`, "progress");
       }
       if (resultData.progressChange) {
         const p = resultData.progressChange;
-        this.log(`${p.rarity} 거리 진행도 ${p.from} → ${p.to}`, "progress");
+        this.battleLog(`${p.rarity} 거리 진행도 ${p.from} → ${p.to}`, "progress");
+        this.event(`${p.rarity} 탐색 진행도가 거리 ${p.to}까지 상승했습니다.`, "progress");
       }
+
       saveGame(this.state);
       this.render();
-      if (this.autoRepeat && this.state.run.selectedPokemonId === pokemon.id) {
+      if (this.autoRepeatUnlocked && this.autoRepeat && this.state.run.selectedPokemonId === pokemon.id) {
         this.battle.scheduleRepeat(() => this.startBattle());
       }
     } else {
-      this.log(`${pokemon.name}에게 패배. ${CONFIG.battle.deathRecoverySeconds}초 후 HP가 완전히 회복됩니다.`, "bad");
+      this.battleLog(`${pokemon.name}에게 패배. ${CONFIG.battle.deathRecoverySeconds}초 후 HP가 완전히 회복됩니다.`, "bad");
+      this.event(`메타몽이 ${pokemon.name}과의 전투에서 쓰러졌습니다.`, "bad");
       this.startBattleCooldown(CONFIG.battle.deathRecoverySeconds, "defeat", true);
       saveGame(this.state);
       this.render();
@@ -232,14 +246,28 @@ class GameApp {
     }
     this.state.resources.researchPoints -= cost;
     this.state.upgrades[key] = level + 1;
-    if (type === "exploration") {
-      this.state.run.revealedCount = Math.max(this.state.run.revealedCount || 0, this.explorationRange);
-    }
+    if (type === "exploration") this.state.run.revealedCount = Math.max(this.state.run.revealedCount || 0, this.explorationRange);
     const label = type === "exploration" ? `탐색 범위 ${this.explorationRange}` : `흡수 한계 ${this.absorptionLimit}`;
-    this.log(`${label}로 증가했습니다.`, "progress");
+    this.event(`${label}로 증가했습니다.`, "progress");
     saveGame(this.state);
     this.render();
     this.ui?.toast(label);
+  }
+
+  unlockAutoRepeat() {
+    if (this.autoRepeatUnlocked) return;
+    const cost = CONFIG.metaProgression.autoRepeatUnlockCost;
+    if (this.state.resources.researchPoints + 1e-9 < cost) {
+      this.ui?.toast(`연구 포인트가 부족합니다. 필요: ${cost}`);
+      return;
+    }
+    this.state.resources.researchPoints -= cost;
+    this.state.upgrades.autoRepeatUnlocked = true;
+    this.autoRepeat = false;
+    this.event("자동 재도전 기능을 해금했습니다.", "progress");
+    saveGame(this.state);
+    this.render();
+    this.ui?.toast("자동 재도전 해금");
   }
 
   rebirth() {
@@ -260,10 +288,7 @@ class GameApp {
     this.ui.showView("battle");
   }
 
-  manualSave() {
-    saveGame(this.state);
-    this.ui.toast("저장했습니다.");
-  }
+  manualSave() { saveGame(this.state); this.ui.toast("저장했습니다."); }
 
   downloadSave() {
     const blob = new Blob([exportSave(this.state)], { type: "application/json" });
@@ -288,6 +313,8 @@ class GameApp {
         this.state = next;
         this.restorePoolFromSave();
         this.logs = Array.isArray(this.state.run.battleLog) ? [...this.state.run.battleLog] : [];
+        this.events = Array.isArray(this.state.run.recentEvents) ? [...this.state.run.recentEvents] : [];
+        this.autoRepeat = false;
         saveGame(this.state);
         this.ui.toast("세이브를 불러왔습니다.");
         this.render();
@@ -298,16 +325,21 @@ class GameApp {
     input.click();
   }
 
-  log(text, type = "") {
+  battleLog(text, type = "") {
     const entry = { text, type, at: Date.now() };
     this.logs.push(entry);
-    if (this.logs.length > 80) this.logs.shift();
+    if (this.logs.length > 120) this.logs.shift();
     if (this.state?.run) this.state.run.battleLog = [...this.logs];
   }
 
-  render() {
-    this.ui?.render();
+  event(text, type = "") {
+    const entry = { text, type, at: Date.now() };
+    this.events.push(entry);
+    if (this.events.length > 40) this.events.shift();
+    if (this.state?.run) this.state.run.recentEvents = [...this.events];
   }
+
+  render() { this.ui?.render(); }
 }
 
 const app = new GameApp();

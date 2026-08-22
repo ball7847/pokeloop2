@@ -59,14 +59,17 @@ function applyRewards(ditto, rewards) {
 function gainExp(state, pokemon, rewardMultiplier = 1) {
   const rarityMul = CONFIG.rewards.rarityMultiplier[pokemon.rarity] || 1;
   const raw = CONFIG.rewards.expBase * rarityMul * (1 + pokemon.distance * 0.025);
-  const gained = Math.max(0, Math.round(raw * rewardMultiplier));
-  state.ditto.exp += gained;
+  const gainedRaw = Math.max(0, Math.round(raw * rewardMultiplier));
+  const maxExp = Math.pow(CONFIG.ditto.maxLevel, 3);
+  const before = state.ditto.exp;
+  state.ditto.exp = Math.min(maxExp, state.ditto.exp + gainedRaw);
+  const gained = state.ditto.exp - before;
   const levelUps = [];
 
-  while (state.ditto.exp >= state.ditto.expToNext) {
-    state.ditto.exp -= state.ditto.expToNext;
+  while (state.ditto.level < CONFIG.ditto.maxLevel) {
+    const nextThreshold = expNeededForLevel(state.ditto.level);
+    if (nextThreshold == null || state.ditto.exp < nextThreshold) break;
     state.ditto.level += 1;
-    state.ditto.expToNext = expNeededForLevel(state.ditto.level);
     state.ditto.maxHp += 2;
     state.ditto.attack += 0.3;
     state.ditto.defense += 0.2;
@@ -76,6 +79,10 @@ function gainExp(state, pokemon, rewardMultiplier = 1) {
     state.ditto.currentHp = state.ditto.maxHp;
     levelUps.push(state.ditto.level);
   }
+
+  state.ditto.expToNext = state.ditto.level >= CONFIG.ditto.maxLevel
+    ? null
+    : expNeededForLevel(state.ditto.level);
 
   return { gained, levelUps };
 }
@@ -91,16 +98,23 @@ function gainResearch(state, pokemon, rewardMultiplier = 1) {
 export function processVictory(state, pokemon, absorptionLimit = Infinity) {
   const previousKills = state.run.killCounts[pokemon.id] || 0;
   const rewardMultiplier = getRewardMultiplier(previousKills);
-  const wasAbsorbed = previousKills >= absorptionLimit;
+  const withinAbsorptionLimit = previousKills < absorptionLimit;
+  const firstVictory = previousKills === 0;
 
   state.totalKills += 1;
   state.run.killCounts[pokemon.id] = previousKills + 1;
 
-  const rewards = getEffectiveRewards(pokemon, previousKills, absorptionLimit);
+  const rewards = withinAbsorptionLimit
+    ? getEffectiveRewards(pokemon, previousKills, absorptionLimit)
+    : [];
   applyRewards(state.ditto, rewards);
+
+  // 흡수 한계 이후에도 EXP만 계속 획득하며 반복 점감은 계속 적용된다.
   const exp = gainExp(state, pokemon, rewardMultiplier);
-  const research = gainResearch(state, pokemon, rewardMultiplier);
-  const newlyAbsorbed = !wasAbsorbed && state.run.killCounts[pokemon.id] >= absorptionLimit;
+  const research = withinAbsorptionLimit
+    ? gainResearch(state, pokemon, rewardMultiplier)
+    : 0;
+  const newlyAbsorbed = withinAbsorptionLimit && state.run.killCounts[pokemon.id] >= absorptionLimit;
 
   let progressChange = null;
   if (pokemon.rarity !== "흔함") {
@@ -111,7 +125,17 @@ export function processVictory(state, pokemon, absorptionLimit = Infinity) {
     }
   }
 
-  return { rewards, exp, research, progressChange, rewardMultiplier, previousKills, newlyAbsorbed };
+  return {
+    rewards,
+    exp,
+    research,
+    progressChange,
+    rewardMultiplier,
+    previousKills,
+    newlyAbsorbed,
+    firstVictory,
+    withinAbsorptionLimit,
+  };
 }
 
 export function formatReward(reward) {

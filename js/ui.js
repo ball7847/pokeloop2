@@ -65,9 +65,9 @@ export class UI {
   renderRecentEvents() {
     const el = document.querySelector("#recentEvents");
     if (!el) return;
-    const logs = this.app.logs.slice(-7).reverse();
-    el.innerHTML = logs.length
-      ? logs.map(x => `<div class="event-item ${x.type || ""}">${esc(x.text)}</div>`).join("")
+    const events = this.app.events.slice(-7).reverse();
+    el.innerHTML = events.length
+      ? events.map(x => `<div class="event-item ${x.type || ""}">${esc(x.text)}</div>`).join("")
       : `<div class="event-empty">아직 기록된 이벤트가 없습니다.</div>`;
   }
 
@@ -100,7 +100,7 @@ export class UI {
                   <span class="rarity-badge rarity-${esc(p.rarity)}">${esc(p.rarity)}</span>
                   <div class="reward-title" style="margin-top:12px">ABSORB · ${absorbed ? "COMPLETE" : `NEXT ${(rewardMultiplier * 100).toFixed(rewardMultiplier < 0.1 ? 1 : 0)}%`}</div>
                   <div class="reward-list">${absorbed ? `<span class="reward-chip completed">능력치 흡수 완료</span>` : rewards.map(r => `<span class="reward-chip">${formatReward(r)}</span>`).join("")}</div>
-                  <div class="meta-line" style="margin-top:8px">흡수 완료 후에도 경험치·연구 포인트·처치 수는 계속 획득</div>
+                  <div class="meta-line" style="margin-top:8px">흡수 한계 이후에는 능력치·연구 포인트 보상이 중단되고, 점감된 경험치만 획득</div>
                 </div>
               </div>
               <div class="health-block">
@@ -112,10 +112,10 @@ export class UI {
                 <button id="battleStop" class="btn" ${this.app.battle.running ? "" : "disabled"}>Flee</button>
                 <button id="choosePokemon" class="btn">Gallery</button>
               </div>
-              <label class="inline-check"><input id="autoRepeat" type="checkbox" ${this.app.autoRepeat ? "checked" : ""}/> 승리 후 같은 포켓몬 자동 재전투</label>
+              ${this.app.autoRepeatUnlocked ? `<label class="inline-check"><input id="autoRepeat" type="checkbox" ${this.app.autoRepeat ? "checked" : ""}/> 승리 후 같은 포켓몬 자동 재도전</label>` : `<div class="prototype-note" style="margin-top:10px">자동 재도전 잠김 · 성장 탭에서 연구 포인트로 해금</div>`}
             ` : `<div class="prototype-note">현재 선택된 포켓몬이 없습니다. 갤러리에서 이번 환생의 포켓몬을 선택하세요.</div><button id="choosePokemon" class="btn primary">Gallery</button>`}
           </div>
-          <div class="panel"><div class="prototype-note">Rejected Draft 참고 규칙: 반복 보상은 1 / (1 + 기존 처치 수)로 점감합니다. 포켓몬별 능력치 흡수는 현재 ${this.app.absorptionLimit}회까지이며, 흡수 완료 시 다음 탐색 대상이 공개됩니다. 경험치와 연구 포인트는 이후에도 계속 획득합니다.</div></div>
+          <div class="panel"><div class="prototype-note">Rejected Draft 참고 규칙: 반복 보상은 1 / (1 + 기존 처치 수)로 점감합니다. 포켓몬은 첫 승리 시 다음 탐색 대상을 공개합니다. 능력치와 연구 포인트는 ${this.app.absorptionLimit}회까지만 획득하며, 이후에는 점감된 경험치만 획득합니다.</div></div>
         </div>
         <div class="panel">
           <h2 class="panel-title">BATTLE LOG</h2>
@@ -140,7 +140,7 @@ export class UI {
     }).sort((a,b) => CONFIG.rarityOrder.indexOf(a.rarity) - CONFIG.rarityOrder.indexOf(b.rarity) || a.distance - b.distance || a.dex - b.dex);
 
     el.innerHTML = `
-      <div class="page-header"><div><h1 class="page-title">GALLERY</h1><p class="page-desc">현재 탐색 범위에 공개된 포켓몬. 흡수를 완료하면 다음 대상이 하나씩 공개된다.</p></div><div class="page-count">공개 ${pool.length} / 전체 ${fullPool.length}</div></div>
+      <div class="page-header"><div><h1 class="page-title">GALLERY</h1><p class="page-desc">현재 탐색 범위에 공개된 포켓몬. 각 포켓몬을 처음 쓰러뜨리면 다음 대상이 하나씩 공개된다.</p></div><div class="page-count">공개 ${pool.length} / 전체 ${fullPool.length}</div></div>
       <div class="gallery-toolbar">
         <input id="pokeSearch" class="input" placeholder="이름 또는 도감번호 검색" value="${esc(this.filters.search)}" />
         <select id="rarityFilter" class="select"><option>전체</option>${CONFIG.rarityOrder.map(r => `<option ${this.filters.rarity===r?"selected":""}>${r}</option>`).join("")}</select>
@@ -161,7 +161,7 @@ export class UI {
             <div class="mini-stat"><span>흡수</span><strong>${Math.min(kills, this.app.absorptionLimit)}/${this.app.absorptionLimit}</strong></div>
             <div class="mini-stat"><span>출현</span><strong>${chance == null ? "확정" : `${(chance*100).toFixed(chance*100 < 0.01 ? 3 : 1)}%`}</strong></div>
           </div>
-          <div class="card-rewards"><div class="label">${absorbed ? "ABSORPTION COMPLETE" : `NEXT ABSORB · ${(rewardMultiplier * 100).toFixed(rewardMultiplier < 0.1 ? 1 : 0)}%`}</div><div class="value">${absorbed ? "능력치 흡수 완료 · EXP/연구는 계속 획득" : getEffectiveRewards(p, kills, this.app.absorptionLimit).map(formatReward).join(" · ")}</div></div>
+          <div class="card-rewards"><div class="label">${absorbed ? `EXP ONLY · ${(rewardMultiplier * 100).toFixed(rewardMultiplier < 0.1 ? 1 : 0)}%` : `NEXT ABSORB · ${(rewardMultiplier * 100).toFixed(rewardMultiplier < 0.1 ? 1 : 0)}%`}</div><div class="value">${absorbed ? "흡수 한계 도달 · 능력치/연구 없음 · EXP만 획득" : getEffectiveRewards(p, kills, this.app.absorptionLimit).map(formatReward).join(" · ")}</div></div>
           <div class="card-action"><button class="small-btn select-pokemon" data-id="${esc(p.id)}">${selected ? "선택됨" : "Challenge"}</button></div>
         </article>`;
       }).join("")}</div>`;
@@ -185,7 +185,7 @@ export class UI {
       <div class="page-header"><div><h1 class="page-title">GROWTH</h1><p class="page-desc">레벨은 런 내 전투 성장, 연구는 랜덤성과 파밍 범위를 통제하는 영구 성장이다.</p></div><div class="page-count">연구 ${fmt(rp,2)}</div></div>
       <div class="summary-grid">
         <div class="summary-card"><div class="big">Lv.${this.app.state.ditto.level}</div><div class="label">메타몽 레벨</div></div>
-        <div class="summary-card"><div class="big">${this.app.state.ditto.exp}/${this.app.state.ditto.expToNext}</div><div class="label">EXP</div></div>
+        <div class="summary-card"><div class="big">${this.app.state.ditto.level >= CONFIG.ditto.maxLevel ? `${this.app.state.ditto.exp.toLocaleString()} / MAX` : `${this.app.state.ditto.exp.toLocaleString()} / ${this.app.state.ditto.expToNext.toLocaleString()}`}</div><div class="label">누적 EXP</div></div>
         <div class="summary-card"><div class="big">${this.app.explorationRange}</div><div class="label">기본 탐색 범위</div></div>
         <div class="summary-card"><div class="big">${this.app.absorptionLimit}</div><div class="label">포켓몬별 흡수 한계</div></div>
       </div>
@@ -193,15 +193,23 @@ export class UI {
         <div class="panel upgrade-panel">
           <h2 class="panel-title">탐색 범위</h2>
           <div class="upgrade-number">${this.app.explorationRange}</div>
-          <p class="page-desc">런 시작 시 공개되는 포켓몬 수. 흡수 완료 포켓몬 1종마다 추가 대상 1종이 더 공개된다.</p>
+          <p class="page-desc">런 시작 시 공개되는 포켓몬 수. 공개된 포켓몬을 처음 쓰러뜨릴 때마다 다음 대상 1종이 추가 공개된다.</p>
           <button id="upgradeExploration" class="btn primary" ${rp < expCost ? "disabled" : ""}>+1 · 연구 ${expCost}</button>
         </div>
         <div class="panel upgrade-panel">
           <h2 class="panel-title">흡수 한계</h2>
           <div class="upgrade-number">${this.app.absorptionLimit}</div>
-          <p class="page-desc">포켓몬 한 종에게서 능력치를 흡수할 수 있는 최대 처치 수. 한계 이후에도 EXP·연구·처치는 계속된다.</p>
+          <p class="page-desc">포켓몬 한 종에게서 능력치와 연구 포인트를 얻을 수 있는 최대 승리 수. 한계 이후에는 점감된 EXP만 획득한다.</p>
           <button id="upgradeAbsorption" class="btn primary" ${rp < absCost ? "disabled" : ""}>+10 · 연구 ${absCost}</button>
         </div>
+      </div>
+      <div class="panel upgrade-panel" style="margin-bottom:14px">
+        <h2 class="panel-title">자동화</h2>
+        <div class="upgrade-number">${this.app.autoRepeatUnlocked ? "UNLOCKED" : "LOCKED"}</div>
+        <p class="page-desc">승리 후 같은 포켓몬에게 자동으로 다시 도전한다. 기본 상태에서는 사용할 수 없다.</p>
+        ${this.app.autoRepeatUnlocked
+          ? `<div class="prototype-note">자동 재도전 해금 완료. 전투 화면에서 켜고 끌 수 있습니다.</div>`
+          : `<button id="unlockAutoRepeat" class="btn primary" ${rp < CONFIG.metaProgression.autoRepeatUnlockCost ? "disabled" : ""}>해금 · 연구 ${CONFIG.metaProgression.autoRepeatUnlockCost}</button>`}
       </div>
       <div class="progress-grid">${CONFIG.rarityOrder.filter(r => r !== "흔함").map(r => {
         const p = this.app.state.rarityProgress[r] || 0;
@@ -210,6 +218,7 @@ export class UI {
       }).join("")}</div>`;
     el.querySelector("#upgradeExploration")?.addEventListener("click", () => this.app.buyMetaUpgrade("exploration"));
     el.querySelector("#upgradeAbsorption")?.addEventListener("click", () => this.app.buyMetaUpgrade("absorption"));
+    el.querySelector("#unlockAutoRepeat")?.addEventListener("click", () => this.app.unlockAutoRepeat());
   }
 
   renderRebirth() {

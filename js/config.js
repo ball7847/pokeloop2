@@ -22,7 +22,6 @@ export const CONFIG = Object.freeze({
     initialProgress: 0,
   },
 
-  // Rejected Draft의 Lookahead / Max Victories를 메타몽식으로 변환한 영구 진행.
   metaProgression: {
     explorationBase: 3,
     explorationPerLevel: 1,
@@ -30,10 +29,13 @@ export const CONFIG = Object.freeze({
     absorptionPerLevel: 10,
     explorationUpgrade: { baseCost: 25, costGrowth: 2.0 },
     absorptionUpgrade: { baseCost: 50, costGrowth: 2.0 },
+    // Rejected Draft의 초반 Auto Retry(50 Graphite)를 연구 포인트 체계로 변환.
+    autoRepeatUnlockCost: 50,
   },
 
   ditto: {
     level: 1,
+    maxLevel: 100,
     maxHp: 100,
     attack: 10,
     defense: 8,
@@ -41,8 +43,6 @@ export const CONFIG = Object.freeze({
     spDefense: 8,
     speed: 10,
     attacksPerSecond: 1.0,
-    expToLevelBase: 18,
-    expToLevelGrowth: 1.22,
   },
 
   battle: {
@@ -98,7 +98,7 @@ export const CONFIG = Object.freeze({
     expBase: 3,
     researchBase: 1,
     researchDistanceGrowth: 0.012,
-    // Rejected Draft 기본 Reward Decay 형태.
+    // Rejected Draft 기본 Reward Decay 형태: n번째 승리 보상 = 1/n.
     repeatDecayFactor: 1.0,
   },
 
