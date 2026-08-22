@@ -22,6 +22,16 @@ export const CONFIG = Object.freeze({
     initialProgress: 0,
   },
 
+  // Rejected Draft의 Lookahead / Max Victories를 메타몽식으로 변환한 영구 진행.
+  metaProgression: {
+    explorationBase: 3,
+    explorationPerLevel: 1,
+    absorptionBase: 10,
+    absorptionPerLevel: 10,
+    explorationUpgrade: { baseCost: 25, costGrowth: 2.0 },
+    absorptionUpgrade: { baseCost: 50, costGrowth: 2.0 },
+  },
+
   ditto: {
     level: 1,
     maxHp: 100,
@@ -36,8 +46,6 @@ export const CONFIG = Object.freeze({
   },
 
   battle: {
-    // 모두 Core Prototype 테스트용 수치. 최종 전투 공식이 아님.
-    // Rejected Draft 참고: 승리 시 즉시 완전회복. 패배/도주는 각각 회복 대기시간을 거친다.
     fullHealBeforeBattle: false,
     victoryRecoverySeconds: 0,
     deathRecoverySeconds: 10,
@@ -58,7 +66,6 @@ export const CONFIG = Object.freeze({
   },
 
   rewards: {
-    // XLSX에는 성장 보상이 없으므로 프로토타입에서는 고유 ID 기반으로 1~3개를 안정적으로 배정.
     stats: ["maxHp", "attack", "defense", "spAttack", "spDefense", "speed", "attacksPerSecond"],
     labels: {
       maxHp: "HP",
@@ -89,13 +96,13 @@ export const CONFIG = Object.freeze({
     },
     distanceGrowth: 0.018,
     expBase: 3,
-    // Rejected Draft 기본 Reward Decay와 동일한 형태.
-    // n회 이미 처치한 대상의 다음 보상 배율 = 1 / (1 + n * repeatDecayFactor)
+    researchBase: 1,
+    researchDistanceGrowth: 0.012,
+    // Rejected Draft 기본 Reward Decay 형태.
     repeatDecayFactor: 1.0,
   },
 
   specialForms: {
-    // 데이터 연결만 준비. 실제 특별폼 대체 출현은 Core Prototype 1에서 비활성.
     enabled: false,
     replacementChance: 0.01,
   },
@@ -105,8 +112,21 @@ export function chanceForPokemon(pokemon, progress) {
   if (pokemon.rarity === "흔함") return 1;
   const rarity = CONFIG.rarity[pokemon.rarity];
   if (!rarity) return 0;
-
-  // progress=0, distance=1 => exponent 0 => baseChance 그대로.
   const exponent = Math.max(0, pokemon.distance - progress - 1);
   return rarity.baseChance / Math.pow(rarity.decay, exponent);
+}
+
+export function explorationRangeForLevel(level = 0) {
+  return CONFIG.metaProgression.explorationBase + Math.max(0, level) * CONFIG.metaProgression.explorationPerLevel;
+}
+
+export function absorptionLimitForLevel(level = 0) {
+  return CONFIG.metaProgression.absorptionBase + Math.max(0, level) * CONFIG.metaProgression.absorptionPerLevel;
+}
+
+export function metaUpgradeCost(type, level = 0) {
+  const rule = type === "exploration"
+    ? CONFIG.metaProgression.explorationUpgrade
+    : CONFIG.metaProgression.absorptionUpgrade;
+  return Math.round(rule.baseCost * Math.pow(rule.costGrowth, Math.max(0, level)));
 }

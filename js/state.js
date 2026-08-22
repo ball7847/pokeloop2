@@ -13,6 +13,13 @@ export function createDefaultState() {
     rebirthCount: 0,
     totalKills: 0,
     rarityProgress,
+    resources: {
+      researchPoints: 0,
+    },
+    upgrades: {
+      explorationLevel: 0,
+      absorptionLevel: 0,
+    },
     ditto: {
       level: CONFIG.ditto.level,
       exp: 0,
@@ -31,6 +38,7 @@ export function createDefaultState() {
       startedAt: null,
       poolIds: [],
       killCounts: {},
+      revealedCount: 0,
       selectedPokemonId: null,
       battleLog: [],
     },
@@ -50,6 +58,8 @@ export function normalizeState(raw) {
     ...base,
     ...raw,
     rarityProgress: { ...base.rarityProgress, ...(raw.rarityProgress || {}) },
+    resources: { ...base.resources, ...(raw.resources || {}) },
+    upgrades: { ...base.upgrades, ...(raw.upgrades || {}) },
     ditto: { ...base.ditto, ...(raw.ditto || {}) },
     run: { ...base.run, ...(raw.run || {}) },
   };

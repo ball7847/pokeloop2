@@ -559,3 +559,36 @@ button { color: inherit; }
   .main-panel { overflow: visible; }
   .grid-2, .progress-grid { grid-template-columns: 1fr; }
 }
+
+/* v1.4 - 탐색 범위 / 흡수 한계 / 연구 포인트 */
+.reward-chip.completed {
+  border-color: #8c62b9;
+  background: linear-gradient(180deg, #fbf7ff, #eee1fa);
+  color: #75469f;
+}
+.pokemon-card.absorbed {
+  background: linear-gradient(180deg, #fbfbff 0%, #eee9f7 100%);
+  border-color: #a78cbd;
+}
+.pokemon-card.absorbed::after {
+  content: "ABSORBED";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  padding: 3px 6px;
+  border-radius: 7px;
+  background: #8f61b5;
+  color: white;
+  font-size: 7px;
+  font-weight: 1000;
+  letter-spacing: .08em;
+  box-shadow: 0 2px 0 #6e458f;
+}
+.upgrade-panel { min-height: 205px; display: flex; flex-direction: column; }
+.upgrade-number {
+  margin: 5px 0 10px;
+  color: var(--accent-2);
+  font: 1000 42px/1 ui-monospace, monospace;
+}
+.upgrade-panel .btn { margin-top: auto; }

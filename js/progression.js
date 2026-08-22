@@ -25,15 +25,11 @@ export function getPrototypeRewards(pokemon) {
   const rarityMul = CONFIG.rewards.rarityMultiplier[pokemon.rarity] || 1;
   const distanceMul = 1 + Math.max(0, pokemon.distance - 1) * CONFIG.rewards.distanceGrowth;
 
-  return selected.map(stat => {
-    const base = CONFIG.rewards.baseAmounts[stat];
-    const amount = base * rarityMul * distanceMul;
-    return {
-      stat,
-      label: CONFIG.rewards.labels[stat],
-      amount,
-    };
-  });
+  return selected.map(stat => ({
+    stat,
+    label: CONFIG.rewards.labels[stat],
+    amount: CONFIG.rewards.baseAmounts[stat] * rarityMul * distanceMul,
+  }));
 }
 
 export function getRewardMultiplier(previousKills) {
@@ -43,7 +39,8 @@ export function getRewardMultiplier(previousKills) {
   return 1 / (1 + kills * factor);
 }
 
-export function getEffectiveRewards(pokemon, previousKills) {
+export function getEffectiveRewards(pokemon, previousKills, absorptionLimit = Infinity) {
+  if (previousKills >= absorptionLimit) return [];
   const multiplier = getRewardMultiplier(previousKills);
   return getPrototypeRewards(pokemon).map(reward => ({
     ...reward,
@@ -54,12 +51,9 @@ export function getEffectiveRewards(pokemon, previousKills) {
 }
 
 function applyRewards(ditto, rewards) {
-  for (const reward of rewards) {
-    ditto[reward.stat] += reward.amount;
-  }
-  if (rewards.some(r => r.stat === "maxHp")) {
-    ditto.currentHp = Math.min(ditto.maxHp, ditto.currentHp + rewards.find(r => r.stat === "maxHp").amount);
-  }
+  for (const reward of rewards) ditto[reward.stat] += reward.amount;
+  const hpReward = rewards.find(r => r.stat === "maxHp");
+  if (hpReward) ditto.currentHp = Math.min(ditto.maxHp, ditto.currentHp + hpReward.amount);
 }
 
 function gainExp(state, pokemon, rewardMultiplier = 1) {
@@ -73,8 +67,6 @@ function gainExp(state, pokemon, rewardMultiplier = 1) {
     state.ditto.exp -= state.ditto.expToNext;
     state.ditto.level += 1;
     state.ditto.expToNext = expNeededForLevel(state.ditto.level);
-
-    // 프로토타입 레벨업 보너스. 이후 최종 성장 공식 확정 시 config/이 함수만 교체.
     state.ditto.maxHp += 2;
     state.ditto.attack += 0.3;
     state.ditto.defense += 0.2;
@@ -88,16 +80,27 @@ function gainExp(state, pokemon, rewardMultiplier = 1) {
   return { gained, levelUps };
 }
 
-export function processVictory(state, pokemon) {
+function gainResearch(state, pokemon, rewardMultiplier = 1) {
+  const rarityMul = CONFIG.rewards.rarityMultiplier[pokemon.rarity] || 1;
+  const raw = CONFIG.rewards.researchBase * rarityMul * (1 + pokemon.distance * CONFIG.rewards.researchDistanceGrowth);
+  const gained = Math.max(0, raw * rewardMultiplier);
+  state.resources.researchPoints += gained;
+  return gained;
+}
+
+export function processVictory(state, pokemon, absorptionLimit = Infinity) {
   const previousKills = state.run.killCounts[pokemon.id] || 0;
   const rewardMultiplier = getRewardMultiplier(previousKills);
+  const wasAbsorbed = previousKills >= absorptionLimit;
 
   state.totalKills += 1;
   state.run.killCounts[pokemon.id] = previousKills + 1;
 
-  const rewards = getEffectiveRewards(pokemon, previousKills);
+  const rewards = getEffectiveRewards(pokemon, previousKills, absorptionLimit);
   applyRewards(state.ditto, rewards);
   const exp = gainExp(state, pokemon, rewardMultiplier);
+  const research = gainResearch(state, pokemon, rewardMultiplier);
+  const newlyAbsorbed = !wasAbsorbed && state.run.killCounts[pokemon.id] >= absorptionLimit;
 
   let progressChange = null;
   if (pokemon.rarity !== "흔함") {
@@ -108,7 +111,7 @@ export function processVictory(state, pokemon) {
     }
   }
 
-  return { rewards, exp, progressChange, rewardMultiplier, previousKills };
+  return { rewards, exp, research, progressChange, rewardMultiplier, previousKills, newlyAbsorbed };
 }
 
 export function formatReward(reward) {

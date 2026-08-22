@@ -1,4 +1,4 @@
-import { CONFIG } from "./config.js";
+import { CONFIG, metaUpgradeCost } from "./config.js";
 import { getAppearanceChance, summarizePool } from "./pool.js";
 import { formatReward, getEffectiveRewards, getPrototypeRewards, getRewardMultiplier } from "./progression.js";
 
@@ -56,8 +56,9 @@ export class UI {
     const top = document.querySelector("#topStats");
     if (top) top.innerHTML = [
       ["환생", this.app.state.rebirthCount],
-      ["런", this.app.state.run?.id || 1],
-      ["풀", this.app.pool.length],
+      ["연구", fmt(this.app.state.resources.researchPoints, 2)],
+      ["탐색", `${this.app.revealedPool.length}/${this.app.pool.length}`],
+      ["흡수", this.app.absorptionLimit],
     ].map(([label,value]) => `<div class="top-resource"><div class="label">${label}</div><div class="value">${value}</div></div>`).join("");
   }
 
@@ -77,7 +78,8 @@ export class UI {
     const d = this.app.state.ditto;
     const killCount = p ? (this.app.state.run.killCounts[p.id] || 0) : 0;
     const rewardMultiplier = p ? getRewardMultiplier(killCount) : 1;
-    const rewards = p ? getEffectiveRewards(p, killCount) : [];
+    const rewards = p ? getEffectiveRewards(p, killCount, this.app.absorptionLimit) : [];
+    const absorbed = p ? killCount >= this.app.absorptionLimit : false;
     const cooldownSeconds = this.app.battleCooldownRemainingSeconds || 0;
     const cooldownActive = cooldownSeconds > 0;
     const cooldownLabel = this.app.cooldownReason === "defeat" ? "RECOVER" : "FLEE";
@@ -94,10 +96,11 @@ export class UI {
                 <div class="enemy-placeholder"></div>
                 <div class="enemy-info">
                   <div class="enemy-name">${esc(p.name)}</div>
-                  <div class="meta-line">도감 #${String(p.dex).padStart(4,"0")} · 거리 ${p.distance} · 이번 런 처치 ${killCount}</div>
+                  <div class="meta-line">도감 #${String(p.dex).padStart(4,"0")} · 거리 ${p.distance} · 처치 ${killCount} · 흡수 ${Math.min(killCount, this.app.absorptionLimit)}/${this.app.absorptionLimit}</div>
                   <span class="rarity-badge rarity-${esc(p.rarity)}">${esc(p.rarity)}</span>
-                  <div class="reward-title" style="margin-top:12px">REWARDS · NEXT ${(rewardMultiplier * 100).toFixed(rewardMultiplier < 0.1 ? 1 : 0)}%</div>
-                  <div class="reward-list">${rewards.map(r => `<span class="reward-chip">${formatReward(r)}</span>`).join("")}</div>
+                  <div class="reward-title" style="margin-top:12px">ABSORB · ${absorbed ? "COMPLETE" : `NEXT ${(rewardMultiplier * 100).toFixed(rewardMultiplier < 0.1 ? 1 : 0)}%`}</div>
+                  <div class="reward-list">${absorbed ? `<span class="reward-chip completed">능력치 흡수 완료</span>` : rewards.map(r => `<span class="reward-chip">${formatReward(r)}</span>`).join("")}</div>
+                  <div class="meta-line" style="margin-top:8px">흡수 완료 후에도 경험치·연구 포인트·처치 수는 계속 획득</div>
                 </div>
               </div>
               <div class="health-block">
@@ -112,7 +115,7 @@ export class UI {
               <label class="inline-check"><input id="autoRepeat" type="checkbox" ${this.app.autoRepeat ? "checked" : ""}/> 승리 후 같은 포켓몬 자동 재전투</label>
             ` : `<div class="prototype-note">현재 선택된 포켓몬이 없습니다. 갤러리에서 이번 환생의 포켓몬을 선택하세요.</div><button id="choosePokemon" class="btn primary">Gallery</button>`}
           </div>
-          <div class="panel"><div class="prototype-note">전투 수치·레벨업·성장 보상 자체는 Core Prototype용 임시값입니다. 반복 보상은 Rejected Draft와 같은 기본 점감식(1 / (1 + 기존 처치 수))을 사용하며, 승리 시 완전회복·패배 시 10초·도주 시 5초 재도전 대기를 적용합니다.</div></div>
+          <div class="panel"><div class="prototype-note">Rejected Draft 참고 규칙: 반복 보상은 1 / (1 + 기존 처치 수)로 점감합니다. 포켓몬별 능력치 흡수는 현재 ${this.app.absorptionLimit}회까지이며, 흡수 완료 시 다음 탐색 대상이 공개됩니다. 경험치와 연구 포인트는 이후에도 계속 획득합니다.</div></div>
         </div>
         <div class="panel">
           <h2 class="panel-title">BATTLE LOG</h2>
@@ -128,7 +131,8 @@ export class UI {
 
   renderPokemon() {
     const el = document.querySelector("#view-pokemon");
-    const pool = this.app.pool;
+    const pool = this.app.revealedPool;
+    const fullPool = this.app.pool;
     const filtered = pool.filter(p => {
       const rarityOk = this.filters.rarity === "전체" || p.rarity === this.filters.rarity;
       const searchOk = !this.filters.search || p.name.toLowerCase().includes(this.filters.search.toLowerCase()) || String(p.dex).includes(this.filters.search);
@@ -136,7 +140,7 @@ export class UI {
     }).sort((a,b) => CONFIG.rarityOrder.indexOf(a.rarity) - CONFIG.rarityOrder.indexOf(b.rarity) || a.distance - b.distance || a.dex - b.dex);
 
     el.innerHTML = `
-      <div class="page-header"><div><h1 class="page-title">GALLERY</h1><p class="page-desc">이번 환생에 등장한 포켓몬. 무엇을 반복해서 잡을지가 이번 빌드를 결정한다.</p></div><div class="page-count">${filtered.length} / ${pool.length}</div></div>
+      <div class="page-header"><div><h1 class="page-title">GALLERY</h1><p class="page-desc">현재 탐색 범위에 공개된 포켓몬. 흡수를 완료하면 다음 대상이 하나씩 공개된다.</p></div><div class="page-count">공개 ${pool.length} / 전체 ${fullPool.length}</div></div>
       <div class="gallery-toolbar">
         <input id="pokeSearch" class="input" placeholder="이름 또는 도감번호 검색" value="${esc(this.filters.search)}" />
         <select id="rarityFilter" class="select"><option>전체</option>${CONFIG.rarityOrder.map(r => `<option ${this.filters.rarity===r?"selected":""}>${r}</option>`).join("")}</select>
@@ -146,17 +150,18 @@ export class UI {
         const selected = this.app.state.run.selectedPokemonId === p.id;
         const kills = this.app.state.run.killCounts[p.id] || 0;
         const rewardMultiplier = getRewardMultiplier(kills);
-        return `<article class="pokemon-card ${selected ? "selected" : ""}">
+        const absorbed = kills >= this.app.absorptionLimit;
+        return `<article class="pokemon-card ${selected ? "selected" : ""} ${absorbed ? "absorbed" : ""}">
           <div class="card-top">
             <div class="card-art">#${String(p.dex).padStart(3,"0")}</div>
             <div><div class="card-name">${esc(p.name)}</div><div class="card-dex">${esc(p.id)}</div><span class="rarity-badge rarity-${esc(p.rarity)}">${esc(p.rarity)}</span></div>
           </div>
           <div class="card-stats">
             <div class="mini-stat"><span>거리</span><strong>${p.distance}</strong></div>
-            <div class="mini-stat"><span>처치</span><strong>${kills}</strong></div>
+            <div class="mini-stat"><span>흡수</span><strong>${Math.min(kills, this.app.absorptionLimit)}/${this.app.absorptionLimit}</strong></div>
             <div class="mini-stat"><span>출현</span><strong>${chance == null ? "확정" : `${(chance*100).toFixed(chance*100 < 0.01 ? 3 : 1)}%`}</strong></div>
           </div>
-          <div class="card-rewards"><div class="label">NEXT REWARDS · ${(rewardMultiplier * 100).toFixed(rewardMultiplier < 0.1 ? 1 : 0)}%</div><div class="value">${getEffectiveRewards(p, kills).map(formatReward).join(" · ")}</div></div>
+          <div class="card-rewards"><div class="label">${absorbed ? "ABSORPTION COMPLETE" : `NEXT ABSORB · ${(rewardMultiplier * 100).toFixed(rewardMultiplier < 0.1 ? 1 : 0)}%`}</div><div class="value">${absorbed ? "능력치 흡수 완료 · EXP/연구는 계속 획득" : getEffectiveRewards(p, kills, this.app.absorptionLimit).map(formatReward).join(" · ")}</div></div>
           <div class="card-action"><button class="small-btn select-pokemon" data-id="${esc(p.id)}">${selected ? "선택됨" : "Challenge"}</button></div>
         </article>`;
       }).join("")}</div>`;
@@ -171,28 +176,51 @@ export class UI {
 
   renderGrowth() {
     const el = document.querySelector("#view-growth");
+    const expLv = this.app.state.upgrades.explorationLevel || 0;
+    const absLv = this.app.state.upgrades.absorptionLevel || 0;
+    const expCost = metaUpgradeCost("exploration", expLv);
+    const absCost = metaUpgradeCost("absorption", absLv);
+    const rp = this.app.state.resources.researchPoints;
     el.innerHTML = `
-      <div class="page-header"><div><h1 class="page-title">GROWTH</h1><p class="page-desc">희귀도별 거리 진행도는 영구 저장된다. 먼 거리 포켓몬 격파 시 즉시 점프한다.</p></div></div>
+      <div class="page-header"><div><h1 class="page-title">GROWTH</h1><p class="page-desc">레벨은 런 내 전투 성장, 연구는 랜덤성과 파밍 범위를 통제하는 영구 성장이다.</p></div><div class="page-count">연구 ${fmt(rp,2)}</div></div>
+      <div class="summary-grid">
+        <div class="summary-card"><div class="big">Lv.${this.app.state.ditto.level}</div><div class="label">메타몽 레벨</div></div>
+        <div class="summary-card"><div class="big">${this.app.state.ditto.exp}/${this.app.state.ditto.expToNext}</div><div class="label">EXP</div></div>
+        <div class="summary-card"><div class="big">${this.app.explorationRange}</div><div class="label">기본 탐색 범위</div></div>
+        <div class="summary-card"><div class="big">${this.app.absorptionLimit}</div><div class="label">포켓몬별 흡수 한계</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="panel upgrade-panel">
+          <h2 class="panel-title">탐색 범위</h2>
+          <div class="upgrade-number">${this.app.explorationRange}</div>
+          <p class="page-desc">런 시작 시 공개되는 포켓몬 수. 흡수 완료 포켓몬 1종마다 추가 대상 1종이 더 공개된다.</p>
+          <button id="upgradeExploration" class="btn primary" ${rp < expCost ? "disabled" : ""}>+1 · 연구 ${expCost}</button>
+        </div>
+        <div class="panel upgrade-panel">
+          <h2 class="panel-title">흡수 한계</h2>
+          <div class="upgrade-number">${this.app.absorptionLimit}</div>
+          <p class="page-desc">포켓몬 한 종에게서 능력치를 흡수할 수 있는 최대 처치 수. 한계 이후에도 EXP·연구·처치는 계속된다.</p>
+          <button id="upgradeAbsorption" class="btn primary" ${rp < absCost ? "disabled" : ""}>+10 · 연구 ${absCost}</button>
+        </div>
+      </div>
       <div class="progress-grid">${CONFIG.rarityOrder.filter(r => r !== "흔함").map(r => {
         const p = this.app.state.rarityProgress[r] || 0;
         const max = CONFIG.rarity[r].maxDistance;
         return `<div class="progress-card"><div class="progress-name rarity-${r}">${r}</div><div class="progress-value">${p} <span class="meta-line">/ ${max}</span></div><div class="progress-sub">진행도 0에서도 거리 1은 기본 출현확률</div></div>`;
-      }).join("")}</div>
-      <div class="panel">
-        <h2 class="panel-title">Distance Decay 공식</h2>
-        <div class="code-box">exponent = max(0, distance - progress - 1)\n\neffectiveChance = baseChance / decay ^ exponent\n\n예: progress 0\ndistance 1 → baseChance\ndistance 2 → baseChance / decay\ndistance 3 → baseChance / decay²</div>
-      </div>`;
+      }).join("")}</div>`;
+    el.querySelector("#upgradeExploration")?.addEventListener("click", () => this.app.buyMetaUpgrade("exploration"));
+    el.querySelector("#upgradeAbsorption")?.addEventListener("click", () => this.app.buyMetaUpgrade("absorption"));
   }
 
   renderRebirth() {
     const el = document.querySelector("#view-rebirth");
     const sum = summarizePool(this.app.pool);
     el.innerHTML = `
-      <div class="page-header"><div><h1 class="page-title">REBIRTH</h1><p class="page-desc">현재 런을 비우고 새로운 포켓몬 풀을 생성한다. 거리 진행도는 유지된다.</p></div></div>
+      <div class="page-header"><div><h1 class="page-title">REBIRTH</h1><p class="page-desc">현재 런을 비우고 새로운 포켓몬 풀을 생성한다. 거리 진행도·연구 포인트·연구 업그레이드는 유지된다.</p></div></div>
       <div class="summary-grid">${CONFIG.rarityOrder.map(r => `<div class="summary-card"><div class="big rarity-${r}">${sum[r] || 0}</div><div class="label">${r}</div></div>`).join("")}</div>
       <div class="panel">
         <h2 class="panel-title">현재 Core Prototype의 환생 처리</h2>
-        <div class="prototype-note">이 초기화 범위는 최종 확정 규칙이 아니라 Core Prototype 테스트용입니다. 영구 시스템이 확정되기 전까지 거리 진행도만 영구 성장으로 취급합니다.</div>
+        <div class="prototype-note">현재 프로토타입에서는 환생 시 메타몽 레벨/능력치와 런 처치 수가 초기화됩니다. 거리 진행도, 연구 포인트, 탐색 범위/흡수 한계 업그레이드는 유지됩니다. 최종 환생 규칙은 이후 조정 가능합니다.</div>
         <div style="height:12px"></div>
         <button id="rebirthBtn" class="btn danger">환생하고 새 풀 생성</button>
       </div>`;

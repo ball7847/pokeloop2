@@ -1,4 +1,4 @@
-import { CONFIG } from "./config.js";
+import { CONFIG, absorptionLimitForLevel, explorationRangeForLevel, metaUpgradeCost } from "./config.js";
 import { createDefaultState } from "./state.js";
 import { generateRunPool } from "./pool.js";
 import { BattleController } from "./battle.js";
@@ -54,8 +54,8 @@ class GameApp {
       }
 
       this.logs = Array.isArray(this.state.run.battleLog) ? [...this.state.run.battleLog].slice(-80) : [];
-      if (!this.state.run.selectedPokemonId || !this.pokemonById.has(this.state.run.selectedPokemonId)) {
-        this.state.run.selectedPokemonId = this.pool[0]?.id || null;
+      if (!this.state.run.selectedPokemonId || !this.pokemonById.has(this.state.run.selectedPokemonId) || !this.isPokemonRevealed(this.state.run.selectedPokemonId)) {
+        this.state.run.selectedPokemonId = this.revealedPool[0]?.id || null;
       }
 
       this.render();
@@ -106,9 +106,36 @@ class GameApp {
     return this.state?.run?.selectedPokemonId ? this.pokemonById.get(this.state.run.selectedPokemonId) : null;
   }
 
+  get explorationRange() {
+    return explorationRangeForLevel(this.state?.upgrades?.explorationLevel || 0);
+  }
+
+  get absorptionLimit() {
+    return absorptionLimitForLevel(this.state?.upgrades?.absorptionLevel || 0);
+  }
+
+  get revealedPool() {
+    const stored = Math.max(0, this.state?.run?.revealedCount || 0);
+    const visibleCount = Math.min(this.pool.length, Math.max(this.explorationRange, stored));
+    return this.pool.slice(0, visibleCount);
+  }
+
+  isPokemonRevealed(id) {
+    return this.revealedPool.some(p => p.id === id);
+  }
+
   restorePoolFromSave() {
     this.pool = (this.state.run.poolIds || []).map(id => this.pokemonById.get(id)).filter(Boolean);
-    if (this.pool.length < 50) this.createNewRun(false);
+    if (this.pool.length < 50) {
+      this.createNewRun(false);
+      return;
+    }
+    if (!this.state.run.revealedCount) {
+      const absorbed = this.pool.reduce((n, p) => n + ((this.state.run.killCounts[p.id] || 0) >= this.absorptionLimit ? 1 : 0), 0);
+      this.state.run.revealedCount = Math.min(this.pool.length, this.explorationRange + absorbed);
+    } else {
+      this.state.run.revealedCount = Math.max(this.state.run.revealedCount, this.explorationRange);
+    }
   }
 
   createNewRun(countAsRebirth = true) {
@@ -125,6 +152,7 @@ class GameApp {
       startedAt: Date.now(),
       poolIds: this.pool.map(p => p.id),
       killCounts: {},
+      revealedCount: Math.min(this.pool.length, this.explorationRange),
       selectedPokemonId: this.pool[0]?.id || null,
       battleLog: [],
     };
@@ -137,7 +165,7 @@ class GameApp {
   }
 
   selectPokemon(id) {
-    if (!this.state.run.poolIds.includes(id)) return;
+    if (!this.state.run.poolIds.includes(id) || !this.isPokemonRevealed(id)) return;
     this.battle.stop(false);
     this.state.run.selectedPokemonId = id;
     saveGame(this.state);
@@ -167,12 +195,16 @@ class GameApp {
 
   onBattleFinish(result, enemy, pokemon) {
     if (result === "victory") {
-      const resultData = processVictory(this.state, pokemon);
+      const resultData = processVictory(this.state, pokemon, this.absorptionLimit);
       this.state.ditto.currentHp = this.state.ditto.maxHp;
       const multiplierText = `${(resultData.rewardMultiplier * 100).toFixed(resultData.rewardMultiplier < 0.1 ? 1 : 0)}%`;
       this.log(`${pokemon.name} 격파. 보상 배율 ${multiplierText} · ${resultData.rewards.map(formatReward).join(", ")}`, "good");
-      this.log(`경험치 +${resultData.exp.gained}`, "good");
+      this.log(`경험치 +${resultData.exp.gained} · 연구 포인트 +${resultData.research.toFixed(2)}`, "good");
       if (resultData.exp.levelUps.length) this.log(`레벨 업 → Lv.${resultData.exp.levelUps.at(-1)}`, "progress");
+      if (resultData.newlyAbsorbed) {
+        this.state.run.revealedCount = Math.min(this.pool.length, Math.max(this.state.run.revealedCount || 0, this.explorationRange) + 1);
+        this.log(`${pokemon.name} 흡수 완료 (${this.absorptionLimit}회). 새로운 탐색 대상이 공개됩니다.`, "progress");
+      }
       if (resultData.progressChange) {
         const p = resultData.progressChange;
         this.log(`${p.rarity} 거리 진행도 ${p.from} → ${p.to}`, "progress");
@@ -190,8 +222,28 @@ class GameApp {
     }
   }
 
+  buyMetaUpgrade(type) {
+    const key = type === "exploration" ? "explorationLevel" : "absorptionLevel";
+    const level = this.state.upgrades[key] || 0;
+    const cost = metaUpgradeCost(type, level);
+    if (this.state.resources.researchPoints + 1e-9 < cost) {
+      this.ui?.toast(`연구 포인트가 부족합니다. 필요: ${cost}`);
+      return;
+    }
+    this.state.resources.researchPoints -= cost;
+    this.state.upgrades[key] = level + 1;
+    if (type === "exploration") {
+      this.state.run.revealedCount = Math.max(this.state.run.revealedCount || 0, this.explorationRange);
+    }
+    const label = type === "exploration" ? `탐색 범위 ${this.explorationRange}` : `흡수 한계 ${this.absorptionLimit}`;
+    this.log(`${label}로 증가했습니다.`, "progress");
+    saveGame(this.state);
+    this.render();
+    this.ui?.toast(label);
+  }
+
   rebirth() {
-    if (!confirm("현재 런의 메타몽 성장과 이번 런 처치 수를 초기화하고 새 포켓몬 풀을 생성할까요?\n희귀도별 거리 진행도는 유지됩니다.")) return;
+    if (!confirm("현재 런의 메타몽 성장과 이번 런 처치 수를 초기화하고 새 포켓몬 풀을 생성할까요?\n거리 진행도·연구 포인트·연구 업그레이드는 유지됩니다.")) return;
     this.createNewRun(true);
     this.ui.toast("새 환생 풀이 생성되었습니다.");
     this.ui.showView("battle");

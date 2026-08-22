@@ -4,6 +4,15 @@ function pickRandom(array, rng = Math.random) {
   return array[Math.floor(rng() * array.length)];
 }
 
+export function sortPoolForExploration(pool) {
+  return [...pool].sort((a, b) =>
+    a.distance - b.distance ||
+    CONFIG.rarityOrder.indexOf(a.rarity) - CONFIG.rarityOrder.indexOf(b.rarity) ||
+    a.dex - b.dex ||
+    a.id.localeCompare(b.id)
+  );
+}
+
 export function generateRunPool(pokemonList, rarityProgress, rng = Math.random) {
   const pool = [];
   const common = pokemonList.filter(p => p.rarity === "흔함");
@@ -16,9 +25,7 @@ export function generateRunPool(pokemonList, rarityProgress, rng = Math.random) 
 
   for (let distance = 1; distance <= CONFIG.rarity["흔함"].maxDistance; distance++) {
     const candidates = commonByDistance.get(distance) || [];
-    if (!candidates.length) {
-      throw new Error(`흔함 거리 ${distance}에 후보가 없습니다.`);
-    }
+    if (!candidates.length) throw new Error(`흔함 거리 ${distance}에 후보가 없습니다.`);
     pool.push(pickRandom(candidates, rng));
   }
 
@@ -29,7 +36,7 @@ export function generateRunPool(pokemonList, rarityProgress, rng = Math.random) 
     if (rng() < chance) pool.push(p);
   }
 
-  return pool;
+  return sortPoolForExploration(pool);
 }
 
 export function summarizePool(pool) {
