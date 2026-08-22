@@ -1,2 +1,1 @@
-Core Prototype 1.9
-Pokemon DPPt UI font
+1.10
