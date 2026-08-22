@@ -105,10 +105,24 @@ class GameApp {
   get absorptionLimit() { return absorptionLimitForLevel(this.state?.upgrades?.absorptionLevel || 0); }
   get autoRepeatUnlocked() { return Boolean(this.state?.upgrades?.autoRepeatUnlocked); }
 
+  get farthestVictoriousIndex() {
+    let farthest = -1;
+    const kills = this.state?.run?.killCounts || {};
+    for (let i = 0; i < this.pool.length; i++) {
+      if ((kills[this.pool[i].id] || 0) >= 1) farthest = i;
+    }
+    return farthest;
+  }
+
+  get revealedCount() {
+    // Rejected Draft식 Lookahead:
+    // 아직 승리한 적이 없으면 처음 N종, 이후에는 '가장 뒤에서 1승 이상 한 위치 + N종'까지 공개한다.
+    const count = this.farthestVictoriousIndex + 1 + this.explorationRange;
+    return Math.min(this.pool.length, Math.max(this.explorationRange, count));
+  }
+
   get revealedPool() {
-    const stored = Math.max(0, this.state?.run?.revealedCount || 0);
-    const visibleCount = Math.min(this.pool.length, Math.max(this.explorationRange, stored));
-    return this.pool.slice(0, visibleCount);
+    return this.pool.slice(0, this.revealedCount);
   }
 
   isPokemonRevealed(id) { return this.revealedPool.some(p => p.id === id); }
@@ -119,12 +133,6 @@ class GameApp {
     if (this.pool.length < 50) {
       this.createNewRun(false);
       return;
-    }
-    if (!this.state.run.revealedCount) {
-      const defeatedOnce = this.pool.reduce((n, p) => n + ((this.state.run.killCounts[p.id] || 0) >= 1 ? 1 : 0), 0);
-      this.state.run.revealedCount = Math.min(this.pool.length, this.explorationRange + defeatedOnce);
-    } else {
-      this.state.run.revealedCount = Math.max(this.state.run.revealedCount, this.explorationRange);
     }
   }
 
@@ -167,6 +175,11 @@ class GameApp {
   startBattle() {
     const pokemon = this.selectedPokemon;
     if (!pokemon || this.battle.running) return;
+    const wins = this.state.run.killCounts[pokemon.id] || 0;
+    if (wins >= this.absorptionLimit) {
+      this.ui?.toast(`흡수 한계 ${this.absorptionLimit}회에 도달해 더 이상 도전할 수 없습니다.`);
+      return;
+    }
     if (this.battleCooldownRemainingMs > 0) {
       const label = this.cooldownReason === "defeat" ? "패배 회복" : "도주 페널티";
       this.ui?.toast(`${label} 중 · ${this.battleCooldownRemainingSeconds.toFixed(1)}초`);
@@ -186,15 +199,10 @@ class GameApp {
     this.render();
   }
 
-  revealNextPokemon() {
-    const before = Math.max(this.explorationRange, this.state.run.revealedCount || 0);
-    if (before >= this.pool.length) return null;
-    this.state.run.revealedCount = Math.min(this.pool.length, before + 1);
-    return this.pool[this.state.run.revealedCount - 1] || null;
-  }
 
   onBattleFinish(result, enemy, pokemon) {
     if (result === "victory") {
+      const revealedBefore = this.revealedCount;
       const resultData = processVictory(this.state, pokemon, this.absorptionLimit);
       this.state.ditto.currentHp = this.state.ditto.maxHp;
       const multiplierText = `${(resultData.rewardMultiplier * 100).toFixed(resultData.rewardMultiplier < 0.1 ? 1 : 0)}%`;
@@ -205,13 +213,14 @@ class GameApp {
       this.event(`${pokemon.name}을(를) 쓰러뜨렸습니다. (${this.state.run.killCounts[pokemon.id]}/${this.absorptionLimit})`, "good");
 
       if (resultData.firstVictory) {
-        const newlyRevealed = this.revealNextPokemon();
-        if (newlyRevealed) {
+        const revealedAfter = this.revealedCount;
+        for (const newlyRevealed of this.pool.slice(revealedBefore, revealedAfter)) {
           this.event(`탐색이 진행되어 ${newlyRevealed.name}이(가) 새롭게 나타났습니다.`, "progress");
         }
       }
       if (resultData.newlyAbsorbed) {
-        this.event(`${pokemon.name}의 흡수 한계 ${this.absorptionLimit}회를 채웠습니다. 이후에는 경험치만 획득합니다.`, "progress");
+        this.autoRepeat = false;
+        this.event(`${pokemon.name}의 흡수 한계 ${this.absorptionLimit}회를 채웠습니다. 이번 런에서는 더 이상 도전할 수 없습니다.`, "progress");
       }
       if (resultData.exp.levelUps.length) {
         this.battleLog(`레벨 업 → Lv.${resultData.exp.levelUps.at(-1)}`, "progress");
@@ -225,7 +234,8 @@ class GameApp {
 
       saveGame(this.state);
       this.render();
-      if (this.autoRepeatUnlocked && this.autoRepeat && this.state.run.selectedPokemonId === pokemon.id) {
+      const winsNow = this.state.run.killCounts[pokemon.id] || 0;
+      if (this.autoRepeatUnlocked && this.autoRepeat && winsNow < this.absorptionLimit && this.state.run.selectedPokemonId === pokemon.id) {
         this.battle.scheduleRepeat(() => this.startBattle());
       }
     } else {
@@ -247,7 +257,6 @@ class GameApp {
     }
     this.state.resources.researchPoints -= cost;
     this.state.upgrades[key] = level + 1;
-    if (type === "exploration") this.state.run.revealedCount = Math.max(this.state.run.revealedCount || 0, this.explorationRange);
     const label = type === "exploration" ? `탐색 범위 ${this.explorationRange}` : `흡수 한계 ${this.absorptionLimit}`;
     this.event(`${label}로 증가했습니다.`, "progress");
     saveGame(this.state);

@@ -1,2 +1,2 @@
-Core Prototype 1.7
-Unified progression line
+Core Prototype 1.8
+Rejected Draft-style lookahead progression

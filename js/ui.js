@@ -80,7 +80,6 @@ export class UI {
     const rewardMultiplier = p ? getRewardMultiplier(killCount) : 1;
     const rewards = p ? getEffectiveRewards(p, killCount, this.app.absorptionLimit) : [];
     const absorbed = p ? killCount >= this.app.absorptionLimit : false;
-    const battleLocked = absorbed;
     const cooldownSeconds = this.app.battleCooldownRemainingSeconds || 0;
     const cooldownActive = cooldownSeconds > 0;
     const cooldownLabel = this.app.cooldownReason === "defeat" ? "RECOVER" : "FLEE";
@@ -101,7 +100,7 @@ export class UI {
                   <span class="rarity-badge rarity-${esc(p.rarity)}">${esc(p.rarity)}</span>
                   <div class="reward-title" style="margin-top:12px">ABSORB · ${absorbed ? "COMPLETE" : `NEXT ${(rewardMultiplier * 100).toFixed(rewardMultiplier < 0.1 ? 1 : 0)}%`}</div>
                   <div class="reward-list">${absorbed ? `<span class="reward-chip completed">능력치 흡수 완료</span>` : rewards.map(r => `<span class="reward-chip">${formatReward(r)}</span>`).join("")}</div>
-                  <div class="meta-line" style="margin-top:8px">${absorbed ? `흡수 한계 도달 · 이번 런에서는 더 이상 이 포켓몬과 전투할 수 없음` : `승리 보상은 반복 횟수에 따라 점감되며, 흡수 한계까지 전투 가능`}</div>
+                  <div class="meta-line" style="margin-top:8px">흡수 한계에 도달하면 이번 런에서는 해당 포켓몬과 더 이상 전투할 수 없습니다.</div>
                 </div>
               </div>
               <div class="health-block">
@@ -109,14 +108,14 @@ export class UI {
                 <div class="health-row"><div class="health-label">DITTO</div><div class="health-track"><div class="health-fill player" style="width:${playerPct}%"></div></div><div class="health-number">${fmt(d.currentHp,1)} / ${fmt(d.maxHp,1)}</div></div>
               </div>
               <div class="battle-actions">
-                <button id="battleStart" class="btn primary" ${this.app.battle.running || cooldownActive || battleLocked ? "disabled" : ""}>${battleLocked ? "LIMIT REACHED" : cooldownActive ? `${cooldownLabel} ${cooldownSeconds.toFixed(1)}s` : "Battle"}</button>
+                <button id="battleStart" class="btn primary" ${this.app.battle.running || cooldownActive || absorbed ? "disabled" : ""}>${absorbed ? "LIMIT REACHED" : cooldownActive ? `${cooldownLabel} ${cooldownSeconds.toFixed(1)}s` : "Battle"}</button>
                 <button id="battleStop" class="btn" ${this.app.battle.running ? "" : "disabled"}>Flee</button>
                 <button id="choosePokemon" class="btn">Gallery</button>
               </div>
               ${this.app.autoRepeatUnlocked ? `<label class="inline-check"><input id="autoRepeat" type="checkbox" ${this.app.autoRepeat ? "checked" : ""}/> 승리 후 같은 포켓몬 자동 재도전</label>` : `<div class="prototype-note" style="margin-top:10px">자동 재도전 잠김 · 성장 탭에서 연구 포인트로 해금</div>`}
             ` : `<div class="prototype-note">현재 선택된 포켓몬이 없습니다. 갤러리에서 이번 환생의 포켓몬을 선택하세요.</div><button id="choosePokemon" class="btn primary">Gallery</button>`}
           </div>
-          <div class="panel"><div class="prototype-note">Rejected Draft 참고 규칙: 반복 보상은 1 / (1 + 기존 처치 수)로 점감합니다. 포켓몬은 첫 승리 시 다음 탐색 대상을 공개합니다. 각 포켓몬은 현재 흡수 한계 ${this.app.absorptionLimit}회까지만 승리할 수 있으며, 한계에 도달하면 이번 런에서는 해당 포켓몬과 더 이상 전투할 수 없습니다.</div></div>
+          <div class="panel"><div class="prototype-note">Rejected Draft식 탐색 규칙: 이번 런의 포켓몬은 통합 progression line 순서를 유지합니다. 공개 범위는 가장 뒤쪽에서 1승 이상 한 포켓몬의 위치 + 탐색 범위 ${this.app.explorationRange}까지입니다. 반복 보상은 1 / (1 + 기존 처치 수)로 점감하며, 흡수 한계 ${this.app.absorptionLimit}회에 도달하면 해당 포켓몬과 더 이상 전투할 수 없습니다.</div></div>
         </div>
         <div class="panel">
           <h2 class="panel-title">BATTLE LOG</h2>
@@ -138,10 +137,10 @@ export class UI {
       const rarityOk = this.filters.rarity === "전체" || p.rarity === this.filters.rarity;
       const searchOk = !this.filters.search || p.name.toLowerCase().includes(this.filters.search.toLowerCase()) || String(p.dex).includes(this.filters.search);
       return rarityOk && searchOk;
-    }).sort((a,b) => CONFIG.rarityOrder.indexOf(a.rarity) - CONFIG.rarityOrder.indexOf(b.rarity) || a.distance - b.distance || a.dex - b.dex);
+    });
 
     el.innerHTML = `
-      <div class="page-header"><div><h1 class="page-title">GALLERY</h1><p class="page-desc">현재 탐색 범위에 공개된 포켓몬. 각 포켓몬을 처음 쓰러뜨리면 다음 대상이 하나씩 공개된다.</p></div><div class="page-count">공개 ${pool.length} / 전체 ${fullPool.length}</div></div>
+      <div class="page-header"><div><h1 class="page-title">GALLERY</h1><p class="page-desc">통합 progression line에서 현재 도달 가능한 포켓몬. 공개된 뒤쪽 포켓몬을 먼저 쓰러뜨리면 그 위치를 기준으로 탐색 범위만큼 더 멀리 볼 수 있다.</p></div><div class="page-count">공개 ${pool.length} / 전체 ${fullPool.length}</div></div>
       <div class="gallery-toolbar">
         <input id="pokeSearch" class="input" placeholder="이름 또는 도감번호 검색" value="${esc(this.filters.search)}" />
         <select id="rarityFilter" class="select"><option>전체</option>${CONFIG.rarityOrder.map(r => `<option ${this.filters.rarity===r?"selected":""}>${r}</option>`).join("")}</select>
@@ -162,8 +161,8 @@ export class UI {
             <div class="mini-stat"><span>흡수</span><strong>${Math.min(kills, this.app.absorptionLimit)}/${this.app.absorptionLimit}</strong></div>
             <div class="mini-stat"><span>출현</span><strong>${chance == null ? "확정" : `${(chance*100).toFixed(chance*100 < 0.01 ? 3 : 1)}%`}</strong></div>
           </div>
-          <div class="card-rewards"><div class="label">${absorbed ? `LIMIT REACHED` : `NEXT ABSORB · ${(rewardMultiplier * 100).toFixed(rewardMultiplier < 0.1 ? 1 : 0)}%`}</div><div class="value">${absorbed ? "흡수 한계 도달 · 이번 런에서 전투 불가" : getEffectiveRewards(p, kills, this.app.absorptionLimit).map(formatReward).join(" · ")}</div></div>
-          <div class="card-action"><button class="small-btn select-pokemon" data-id="${esc(p.id)}" ${absorbed ? "disabled" : ""}>${absorbed ? "완료" : selected ? "선택됨" : "Challenge"}</button></div>
+          <div class="card-rewards"><div class="label">${absorbed ? "LIMIT REACHED" : `NEXT ABSORB · ${(rewardMultiplier * 100).toFixed(rewardMultiplier < 0.1 ? 1 : 0)}%`}</div><div class="value">${absorbed ? `흡수 한계 ${this.app.absorptionLimit}회 도달 · 이번 런 추가 전투 불가` : getEffectiveRewards(p, kills, this.app.absorptionLimit).map(formatReward).join(" · ")}</div></div>
+          <div class="card-action"><button class="small-btn select-pokemon" data-id="${esc(p.id)}">${selected ? "선택됨" : absorbed ? "완료" : "Challenge"}</button></div>
         </article>`;
       }).join("")}</div>`;
 
@@ -200,7 +199,7 @@ export class UI {
         <div class="panel upgrade-panel">
           <h2 class="panel-title">흡수 한계</h2>
           <div class="upgrade-number">${this.app.absorptionLimit}</div>
-          <p class="page-desc">포켓몬 한 종에게 승리할 수 있는 최대 횟수. 한계에 도달하면 해당 런에서는 그 포켓몬과 더 이상 전투할 수 없다. 한계를 늘리면 더 깊은 반복 파밍과 고회수 처치 조건을 해금할 수 있다.</p>
+          <p class="page-desc">포켓몬 한 종에게서 능력치와 연구 포인트를 얻을 수 있는 최대 승리 수. 한계 이후에는 점감된 EXP만 획득한다.</p>
           <button id="upgradeAbsorption" class="btn primary" ${rp < absCost ? "disabled" : ""}>+10 · 연구 ${absCost}</button>
         </div>
       </div>
