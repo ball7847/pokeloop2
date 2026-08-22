@@ -1,6 +1,6 @@
 import { CONFIG, absorptionLimitForLevel, explorationRangeForLevel, metaUpgradeCost } from "./config.js";
 import { createDefaultState } from "./state.js";
-import { generateRunPool } from "./pool.js";
+import { generateRunPool, sortPoolForExploration } from "./pool.js";
 import { BattleController } from "./battle.js";
 import { processVictory, formatReward } from "./progression.js";
 import { clearSave, exportSave, importSave, loadSave, saveGame } from "./save.js";
@@ -114,7 +114,8 @@ class GameApp {
   isPokemonRevealed(id) { return this.revealedPool.some(p => p.id === id); }
 
   restorePoolFromSave() {
-    this.pool = (this.state.run.poolIds || []).map(id => this.pokemonById.get(id)).filter(Boolean);
+    this.pool = sortPoolForExploration((this.state.run.poolIds || []).map(id => this.pokemonById.get(id)).filter(Boolean));
+    this.state.run.poolIds = this.pool.map(p => p.id);
     if (this.pool.length < 50) {
       this.createNewRun(false);
       return;
@@ -166,11 +167,6 @@ class GameApp {
   startBattle() {
     const pokemon = this.selectedPokemon;
     if (!pokemon || this.battle.running) return;
-    const kills = this.state.run.killCounts[pokemon.id] || 0;
-    if (kills >= this.absorptionLimit) {
-      this.ui?.toast(`${pokemon.name}은(는) 이번 런의 흡수 한계 ${this.absorptionLimit}회를 모두 채웠습니다.`);
-      return;
-    }
     if (this.battleCooldownRemainingMs > 0) {
       const label = this.cooldownReason === "defeat" ? "패배 회복" : "도주 페널티";
       this.ui?.toast(`${label} 중 · ${this.battleCooldownRemainingSeconds.toFixed(1)}초`);
@@ -215,8 +211,7 @@ class GameApp {
         }
       }
       if (resultData.newlyAbsorbed) {
-        this.autoRepeat = false;
-        this.event(`${pokemon.name}의 흡수 한계 ${this.absorptionLimit}회를 모두 채웠습니다. 이번 런에서는 더 이상 전투할 수 없습니다.`, "progress");
+        this.event(`${pokemon.name}의 흡수 한계 ${this.absorptionLimit}회를 채웠습니다. 이후에는 경험치만 획득합니다.`, "progress");
       }
       if (resultData.exp.levelUps.length) {
         this.battleLog(`레벨 업 → Lv.${resultData.exp.levelUps.at(-1)}`, "progress");
@@ -230,8 +225,7 @@ class GameApp {
 
       saveGame(this.state);
       this.render();
-      const currentKills = this.state.run.killCounts[pokemon.id] || 0;
-      if (this.autoRepeatUnlocked && this.autoRepeat && currentKills < this.absorptionLimit && this.state.run.selectedPokemonId === pokemon.id) {
+      if (this.autoRepeatUnlocked && this.autoRepeat && this.state.run.selectedPokemonId === pokemon.id) {
         this.battle.scheduleRepeat(() => this.startBattle());
       }
     } else {
