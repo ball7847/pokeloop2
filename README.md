@@ -1,40 +1,29 @@
 # PokéLoop 2 — Rejected Draft adaptation
 
-This repository is reset and ready for a locally restored Rejected Draft production build.
+## Imported bundle
+- All **362 files** from the restored Rejected Draft capture have been uploaded alongside this README (363 repository files total at verification).
+- Main entry: `index.html` → `assets/main-DksMQC7H.js`.
+- The 11 relative JS/CSS references found in the main entry bundle are present.
+- This is a production/minified web build, **not** the original React/TypeScript project.
 
-## Current state
-- Original PokéLoop files removed from the current `main` tree.
-- Import of game assets is **pending**; this repository does not yet contain the playable game.
-- Source bundle: `rejected_draft_local.zip` extracted from the authorized HAR capture (362 files, around 15 MB unpacked).
-- Its bundled JavaScript is production/minified output, not original TypeScript/React source.
-
-## Import on Windows (once)
-1. Download `rejected_draft_local.zip` from the ChatGPT conversation.
-2. Install Git and clone this repository: `git clone https://github.com/ball7847/pokeloop2.git`
-3. Extract the ZIP to a temporary directory.
-4. Copy the **contents** of the extracted `rejected_draft_local` directory into the cloned `pokeloop2` directory (so `index.html` is at repository root).
-5. From `pokeloop2`, run:
-   ```powershell
-   git add -A
-   git commit -m "Import Rejected Draft restored production bundle"
-   git push origin main
-   ```
+## Known limitations
+- `assets/universeImageWorker-BVrVQ8px.js` is not included in the capture; image-related functionality may fall back or fail.
+- The version-check URL in the bundled JS still points to `https://kuzzigames.com/rejected_draft/version.json`.
+- Some dynamically requested language resources may be absent.
+- **Browser runtime, battle flow and save behavior have not been verified**.
+- The repository is **public** as of the latest check. Set it private before relying on it as a non-public workspace.
 
 ## Run locally
-From the repository root:
+Clone or download repository contents. From its root, run:
+
 ```sh
 python -m http.server 8000
 ```
-Open `http://localhost:8000/`. Opening `index.html` directly through `file://` may block ES modules.
 
-## Verification caveats
-- The archived initial HTML references `assets/main-DksMQC7H.js` and related modules.
-- Some locale chunks (including `locale-ko-DjT9W6T1.js`) were not present in the capture, and may require later acquisition.
-- Browser runtime functionality has **not** been validated. JavaScript syntax and key static asset references alone are insufficient proof of a working game.
-- Do not assume the GitHub repository is private: verify visibility before importing any code that must remain non-public.
+Then open `http://localhost:8000/` in a browser. Avoid opening `index.html` using `file://` because JS modules may not load.
 
-## Development plan
-1. Restore & smoke-test game locally.
-2. Fix missing static resources and module paths.
-3. Document battle, progression, gallery, store and persistence internals.
-4. Refactor incrementally for Pokémon mechanics.
+## Next development milestones
+1. Browser smoke test: load the initial game and identify missing assets.
+2. Fix worker/resource paths and eliminate the original game's version polling and telemetry.
+3. Verify gallery, battle, shop, redraw and saves.
+4. Refactor a small feature safely before adding PokéLoop-specific changes.
