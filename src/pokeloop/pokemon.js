@@ -1,39 +1,327 @@
-/** First playable roster; separate species/forms can be added without touching combat code. */
+/** PokéLoop encounter selection, based on original Rejected Draft Redraw rolls. */
 import { TYPES } from "./core.js";
-const data = [
- [1,"이상해씨",["grass","poison"],"common"],
- [4,"파이리",["fire"],"common"],
- [7,"꼬부기",["water"],"common"],
- [10,"캐터피",["bug"],"common"],
- [16,"구구",["normal","flying"],"common"],
- [19,"꼬렛",["normal"],"common"],
- [25,"피카츄",["electric"],"uncommon"],
- [35,"삐삐",["fairy"],"uncommon"],
- [41,"주뱃",["poison","flying"],"common"],
- [63,"캐이시",["psychic"],"uncommon"],
- [66,"알통몬",["fighting"],"common"],
- [74,"꼬마돌",["rock","ground"],"common"],
- [92,"고오스",["ghost","poison"],"uncommon"],
- [95,"롱스톤",["rock","ground"],"uncommon"],
- [129,"잉어킹",["water"],"common"],
- [131,"라프라스",["water","ice"],"rare"],
- [133,"이브이",["normal"],"uncommon"],
- [147,"미뇽",["dragon"],"rare"],
- [212,"핫삼",["bug","steel"],"rare"],
- [215,"포푸니",["dark","ice"],"uncommon"],
- [280,"랄토스",["psychic","fairy"],"uncommon"],
- [302,"깜까미",["dark","ghost"],"rare"],
- [304,"가보리",["steel","rock"],"uncommon"],
- [443,"딥상어동",["dragon","ground"],"rare"],
- [447,"리오르",["fighting"],"uncommon"],
- [607,"불켜미",["ghost","fire"],"uncommon"],
- [778,"따라큐",["ghost","fairy"],"rare"],
- [957,"어리짱",["fairy","steel"],"uncommon"],
- [1024,"테라파고스",["normal"],"boss"]
+import { ORIGINAL_COMBAT_TEMPLATES } from "./templates.js";
+// Initial subset only. Later: evolve replacements are an opt-in system; until then evolved species cannot spawn.
+const ROWS = [
+  {
+    "dex": 1,
+    "name": "이상해씨",
+    "types": [
+      "grass",
+      "poison"
+    ],
+    "rarity": "scrap",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 4,
+    "name": "파이리",
+    "types": [
+      "fire"
+    ],
+    "rarity": "scrap",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 7,
+    "name": "꼬부기",
+    "types": [
+      "water"
+    ],
+    "rarity": "scrap",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 10,
+    "name": "캐터피",
+    "types": [
+      "bug"
+    ],
+    "rarity": "scrap",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 16,
+    "name": "구구",
+    "types": [
+      "normal",
+      "flying"
+    ],
+    "rarity": "scrap",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 19,
+    "name": "꼬렛",
+    "types": [
+      "normal"
+    ],
+    "rarity": "scrap",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 25,
+    "name": "피카츄",
+    "types": [
+      "electric"
+    ],
+    "rarity": "rough",
+    "evolved": true,
+    "boss": false
+  },
+  {
+    "dex": 35,
+    "name": "삐삐",
+    "types": [
+      "fairy"
+    ],
+    "rarity": "rough",
+    "evolved": true,
+    "boss": false
+  },
+  {
+    "dex": 41,
+    "name": "주뱃",
+    "types": [
+      "poison",
+      "flying"
+    ],
+    "rarity": "scrap",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 63,
+    "name": "캐이시",
+    "types": [
+      "psychic"
+    ],
+    "rarity": "rough",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 66,
+    "name": "알통몬",
+    "types": [
+      "fighting"
+    ],
+    "rarity": "scrap",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 74,
+    "name": "꼬마돌",
+    "types": [
+      "rock",
+      "ground"
+    ],
+    "rarity": "scrap",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 92,
+    "name": "고오스",
+    "types": [
+      "ghost",
+      "poison"
+    ],
+    "rarity": "rough",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 95,
+    "name": "롱스톤",
+    "types": [
+      "rock",
+      "ground"
+    ],
+    "rarity": "rough",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 129,
+    "name": "잉어킹",
+    "types": [
+      "water"
+    ],
+    "rarity": "scrap",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 131,
+    "name": "라프라스",
+    "types": [
+      "water",
+      "ice"
+    ],
+    "rarity": "framed",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 133,
+    "name": "이브이",
+    "types": [
+      "normal"
+    ],
+    "rarity": "rough",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 147,
+    "name": "미뇽",
+    "types": [
+      "dragon"
+    ],
+    "rarity": "framed",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 212,
+    "name": "핫삼",
+    "types": [
+      "bug",
+      "steel"
+    ],
+    "rarity": "framed",
+    "evolved": true,
+    "boss": false
+  },
+  {
+    "dex": 215,
+    "name": "포푸니",
+    "types": [
+      "dark",
+      "ice"
+    ],
+    "rarity": "rough",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 280,
+    "name": "랄토스",
+    "types": [
+      "psychic",
+      "fairy"
+    ],
+    "rarity": "rough",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 302,
+    "name": "깜까미",
+    "types": [
+      "dark",
+      "ghost"
+    ],
+    "rarity": "framed",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 304,
+    "name": "가보리",
+    "types": [
+      "steel",
+      "rock"
+    ],
+    "rarity": "rough",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 443,
+    "name": "딥상어동",
+    "types": [
+      "dragon",
+      "ground"
+    ],
+    "rarity": "framed",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 447,
+    "name": "리오르",
+    "types": [
+      "fighting"
+    ],
+    "rarity": "rough",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 607,
+    "name": "불켜미",
+    "types": [
+      "ghost",
+      "fire"
+    ],
+    "rarity": "rough",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 778,
+    "name": "따라큐",
+    "types": [
+      "ghost",
+      "fairy"
+    ],
+    "rarity": "framed",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 957,
+    "name": "어리짱",
+    "types": [
+      "fairy",
+      "steel"
+    ],
+    "rarity": "rough",
+    "evolved": false,
+    "boss": false
+  },
+  {
+    "dex": 1024,
+    "name": "테라파고스",
+    "types": [
+      "normal"
+    ],
+    "rarity": "boss",
+    "evolved": false,
+    "boss": true
+  }
 ];
-export const POKEMON=Object.freeze(data.map(([dex,name,types,rarity])=>{
- if(!types.every(t=>TYPES.includes(t)))throw new Error("Bad Pokémon typing");
- return Object.freeze({dex,name,types:Object.freeze(types),rarity,id:"dex-"+dex});
+export const RARITIES=Object.freeze(["scrap","rough","framed","opus","masterpiece"]);
+export const DEFAULT_RARITY_CHANCES=Object.freeze({scrap:100,rough:0,framed:0,opus:0,masterpiece:0});
+const validChance=(v)=>{if(typeof v!=="number"||!Number.isFinite(v)||v<0||v>100)throw new RangeError("Chance must be 0..100");return v;};
+const byRarity=Object.fromEntries(RARITIES.map(t=>[t,ORIGINAL_COMBAT_TEMPLATES.filter(p=>p.rarity===t)]));
+/** Multiple Pokémon can inherit the same original combat pattern (option B).
+ * This deterministic fallback allocation is provisional until balance calibration.
+ */
+export const POKEMON=Object.freeze(ROWS.map((p)=>{
+ if(!p.types.length||p.types.length>2||p.types.some(t=>!TYPES.includes(t)))throw new Error("Invalid Pokémon typing: "+p.dex);
+ const pool=byRarity[p.rarity]||[];
+ const templateId=pool.length?pool[p.dex%pool.length].id:null;
+ return Object.freeze({...p,id:"dex-"+p.dex,types:Object.freeze(p.types),templateId});
 }));
 export const FINAL_BOSSES=Object.freeze([
  {id:"terapagos",name:"테라파고스",types:["normal"],status:"planned"},
@@ -41,25 +329,23 @@ export const FINAL_BOSSES=Object.freeze([
  {id:"ultra-necrozma",name:"울트라네크로즈마",types:["psychic","dragon"],status:"planned"},
  {id:"arceus",name:"아르세우스",types:["normal"],status:"planned"}
 ]);
-export function pickSpawn(eligible,{rng=Math.random,rarityWeights={common:75,uncommon:20,rare:5}}={}){
- if(!eligible.length)return null;
- const candidates=eligible.map(p=>({p,weight:rarityWeights[p.rarity]??0})).filter(e=>e.weight>0);
- const total=candidates.reduce((s,e)=>s+e.weight,0);
- if(total===0)return null;
- let remaining=rng()*total;
- for(const entry of candidates){remaining-=entry.weight;if(remaining<0)return entry.p;}
- return candidates[candidates.length-1].p;
+/** Rolls each Pokémon independently ONCE at the start of a Redraw run.
+ * No tier gating, forced spawns, or per-battle re-rolls.
+ * Special bosses and evolved forms are excluded until their mechanics are built.
+ */
+export function rollRunRoster({pokemon=POKEMON,chances=DEFAULT_RARITY_CHANCES,rng=Math.random}={}){
+ const chosen=[];
+ for(const p of pokemon){
+  if(p.evolved||p.boss||!RARITIES.includes(p.rarity))continue;
+  const probability=validChance(chances[p.rarity]??0);
+  if(rng()*100<probability)chosen.push(p);
+ }
+ return chosen;
 }
-/** Soft spawn limiting: high-tier typings can appear early at low probability. */
-export function eligibleSpawns(highestTier,{earlyRareChance=0.02,rng=Math.random}={}){
- return POKEMON.filter(p=>{
-  if(p.rarity==="boss")return false;
-  const required=Math.max(...p.types.map(t=>typeTier(t)));
-  return required<=highestTier+1 || rng()<earlyRareChance;
- });
+/** Equivalent to original game's already-selected enemies: filter and select, not respawn. */
+export function eligibleSpawns(_highestTier, options={}){
+ return rollRunRoster(options);
 }
-const typeTier=type=>({
- normal:1,fire:2,water:2,grass:2,electric:3,bug:4,flying:4,
- ground:5,rock:5,fighting:6,psychic:6,dark:6,steel:7,poison:7,
- ice:8,ghost:8,dragon:9,fairy:10
-})[type];
+export function getOriginalTemplate(pokemon){
+ return ORIGINAL_COMBAT_TEMPLATES.find(t=>t.id===pokemon.templateId)||null;
+}
