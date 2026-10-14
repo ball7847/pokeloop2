@@ -17,17 +17,16 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out development branch
+        uses: actions/checkout@v4
+        with:
+          ref: pokeloop-dev
+
       - name: Check out stable main
         uses: actions/checkout@v4
         with:
           ref: main
           path: stable
-
-      - name: Check out development branch
-        uses: actions/checkout@v4
-        with:
-          ref: pokeloop-dev
-          path: development
 
       - name: Install Node for rule tests
         uses: actions/setup-node@v4
@@ -35,7 +34,7 @@ jobs:
           node-version: '22'
 
       - name: Validate PokéLoop rule tests
-        run: node development/src/pokeloop/core.test.mjs
+        run: node src/pokeloop/core.test.mjs
 
       - name: Create combined static website
         shell: bash
@@ -43,7 +42,7 @@ jobs:
           set -euo pipefail
           mkdir -p site/dev
           rsync -a --exclude='.git' --exclude='.github' stable/ site/
-          rsync -a --exclude='.git' --exclude='.github' development/ site/dev/
+          rsync -a --exclude='.git' --exclude='.github' --exclude='stable' --exclude='site' ./ site/dev/
           touch site/.nojekyll
           test -s site/index.html
           test -s site/dev/index.html
