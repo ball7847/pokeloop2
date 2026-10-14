@@ -1,0 +1,58 @@
+name: Publish stable and development previews
+
+on:
+  push:
+    branches:
+      - pokeloop-dev
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pokeloop-pages-preview
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out stable main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: stable
+
+      - name: Check out development branch
+        uses: actions/checkout@v4
+        with:
+          ref: pokeloop-dev
+          path: development
+
+      - name: Install Node for rule tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate PokéLoop rule tests
+        run: node development/src/pokeloop/core.test.mjs
+
+      - name: Create combined static website
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p site/dev
+          rsync -a --exclude='.git' --exclude='.github' stable/ site/
+          rsync -a --exclude='.git' --exclude='.github' development/ site/dev/
+          touch site/.nojekyll
+          test -s site/index.html
+          test -s site/dev/index.html
+          test -s site/assets/main-DksMQC7H.js
+          test -s site/dev/assets/main-DksMQC7H.js
+
+      - name: Publish site to gh-pages branch
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: site
+          clean: true
