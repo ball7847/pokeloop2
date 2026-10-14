@@ -44,5 +44,6 @@ let chain=freshRun();chain.earned.normal=1025;chain.reserved.fire=1025;chain.res
 advanceUnlocks(chain);
 assert.deepEqual(chain.unlockedTiers,[1,2,3]);
 assert.equal(chain.energy.fire,1025);
-assert.equal(chain.reserved.electric,512.5);
+assert.equal(chain.energy.electric,512.5);
+assert.equal(chain.reserved.electric,0);
 console.log("PokéLoop core tests passed");
