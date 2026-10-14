@@ -1,0 +1,634 @@
+{
+  "status": "provisional-mapping",
+  "note": "47 tools + 43 upgrades: old effects and prices preserved; this mapping is a proposal pending user review",
+  "tools": [
+    {
+      "id": "AUTO_CHALLENGE",
+      "baseCost": "5",
+      "originalCurrency": "Graphite",
+      "type": "normal"
+    },
+    {
+      "id": "AUTO_RETRY",
+      "baseCost": "50",
+      "originalCurrency": "Graphite",
+      "type": "normal"
+    },
+    {
+      "id": "GRAPHITE_PUMP",
+      "baseCost": "5",
+      "originalCurrency": "Wax",
+      "type": "fire"
+    },
+    {
+      "id": "SKETCH_HIDING",
+      "baseCost": "20",
+      "originalCurrency": "Wax",
+      "type": "water"
+    },
+    {
+      "id": "SOFT_ERASER",
+      "baseCost": "5",
+      "originalCurrency": "Charcoal",
+      "type": "electric"
+    },
+    {
+      "id": "AUTO_ADVANCE",
+      "baseCost": "250",
+      "originalCurrency": "Graphite",
+      "type": "normal"
+    },
+    {
+      "id": "REWARD_BOOSTER",
+      "baseCost": "50",
+      "originalCurrency": "Coffee",
+      "type": "bug"
+    },
+    {
+      "id": "WAX_GENERATOR",
+      "baseCost": "500",
+      "originalCurrency": "Wax",
+      "type": "grass"
+    },
+    {
+      "id": "GRAPHITE_PLUS",
+      "baseCost": "1e3",
+      "originalCurrency": "Charcoal",
+      "type": "electric"
+    },
+    {
+      "id": "REVIEW_AUDIT",
+      "baseCost": "1e3",
+      "originalCurrency": "Coffee",
+      "type": "flying"
+    },
+    {
+      "id": "BUY_MAX",
+      "baseCost": "5",
+      "originalCurrency": "Ink",
+      "type": "ground"
+    },
+    {
+      "id": "AUTO_BUY",
+      "baseCost": "500",
+      "originalCurrency": "Ink",
+      "type": "rock"
+    },
+    {
+      "id": "CHARCOAL_OVERDRIVE",
+      "baseCost": "1e6",
+      "originalCurrency": "Graphite",
+      "type": "normal"
+    },
+    {
+      "id": "AUTO_HIDE_MAXED",
+      "baseCost": "5",
+      "originalCurrency": "Marker",
+      "type": "psychic"
+    },
+    {
+      "id": "WAX_OVERDRIVE",
+      "baseCost": "1e3",
+      "originalCurrency": "Marker",
+      "type": "fighting"
+    },
+    {
+      "id": "COFFEE_GENERATOR",
+      "baseCost": "1e6",
+      "originalCurrency": "Wax",
+      "type": "grass"
+    },
+    {
+      "id": "REWARDS_FILTER",
+      "baseCost": "1e4",
+      "originalCurrency": "Charcoal",
+      "type": "electric"
+    },
+    {
+      "id": "CONCEPTUAL_BRIDGE",
+      "baseCost": "1e5",
+      "originalCurrency": "Charcoal",
+      "type": "electric"
+    },
+    {
+      "id": "INK_GENERATOR",
+      "baseCost": "1e6",
+      "originalCurrency": "Coffee",
+      "type": "bug"
+    },
+    {
+      "id": "MASTER_AUTO_BUY",
+      "baseCost": "5e4",
+      "originalCurrency": "Ink",
+      "type": "rock"
+    },
+    {
+      "id": "RANDOMIZER",
+      "baseCost": "12e5",
+      "originalCurrency": "Charcoal",
+      "type": "electric"
+    },
+    {
+      "id": "MARKER_GENERATOR",
+      "baseCost": "5e6",
+      "originalCurrency": "Ink",
+      "type": "ground"
+    },
+    {
+      "id": "SHOWDOWN",
+      "baseCost": "25e3",
+      "originalCurrency": "Marker",
+      "type": "fighting"
+    },
+    {
+      "id": "COFFEE_DISCOUNT",
+      "baseCost": "5e6",
+      "originalCurrency": "Marker",
+      "type": "dark"
+    },
+    {
+      "id": "WAX_DISCOUNT",
+      "baseCost": "50",
+      "originalCurrency": "Acrylic",
+      "type": "steel"
+    },
+    {
+      "id": "RARITY_FILTERS",
+      "baseCost": "200",
+      "originalCurrency": "Acrylic",
+      "type": "poison"
+    },
+    {
+      "id": "VICTORY_LAP",
+      "baseCost": "1e12",
+      "originalCurrency": "Ink",
+      "type": "ground"
+    },
+    {
+      "id": "CHARCOAL_DISCOUNT",
+      "baseCost": "1e9",
+      "originalCurrency": "Coffee",
+      "type": "flying"
+    },
+    {
+      "id": "POP_CRITIQUE",
+      "baseCost": "7777",
+      "originalCurrency": "Acrylic",
+      "type": "poison"
+    },
+    {
+      "id": "INK_DISCOUNT",
+      "baseCost": "5e5",
+      "originalCurrency": "Acrylic",
+      "type": "steel"
+    },
+    {
+      "id": "PRE_BATTLE_MEDITATION",
+      "baseCost": "10",
+      "originalCurrency": "Spray",
+      "type": "ghost"
+    },
+    {
+      "id": "MARKER_DISCOUNT",
+      "baseCost": "1e3",
+      "originalCurrency": "Spray",
+      "type": "ice"
+    },
+    {
+      "id": "PRECISE_ERASER",
+      "baseCost": "5e12",
+      "originalCurrency": "Coffee",
+      "type": "bug"
+    },
+    {
+      "id": "ACRYLIC_DISCOUNT",
+      "baseCost": "1e6",
+      "originalCurrency": "Spray",
+      "type": "ice"
+    },
+    {
+      "id": "ACRYLIC_GENERATOR",
+      "baseCost": "1e16",
+      "originalCurrency": "Marker",
+      "type": "dark"
+    },
+    {
+      "id": "SPRAY_GENERATOR",
+      "baseCost": "1e18",
+      "originalCurrency": "Acrylic",
+      "type": "steel"
+    },
+    {
+      "id": "SKETCH_SWAPPER",
+      "baseCost": "1e33",
+      "originalCurrency": "Wax",
+      "type": "water"
+    },
+    {
+      "id": "PHOTON_GENERATOR",
+      "baseCost": "200",
+      "originalCurrency": "Photon",
+      "type": "dragon"
+    },
+    {
+      "id": "SPRAY_DISCOUNT",
+      "baseCost": "1e7",
+      "originalCurrency": "Photon",
+      "type": "dragon"
+    },
+    {
+      "id": "PHOTON_OVERDRIVE",
+      "baseCost": "1e20",
+      "originalCurrency": "Spray",
+      "type": "ghost"
+    },
+    {
+      "id": "CLEAN_SLATE",
+      "baseCost": "1e36",
+      "originalCurrency": "Graphite",
+      "type": "normal"
+    },
+    {
+      "id": "BUDDHA_MODE",
+      "baseCost": "1e11",
+      "originalCurrency": "Photon",
+      "type": "dragon"
+    },
+    {
+      "id": "GRAPHITE_SUPER_DISCOUNT",
+      "baseCost": "1e21",
+      "originalCurrency": "Photon",
+      "type": "dragon"
+    },
+    {
+      "id": "CHARCOAL_SUPER_DISCOUNT",
+      "baseCost": "5",
+      "originalCurrency": "Gold Leaf",
+      "type": "fairy"
+    },
+    {
+      "id": "PHOTON_DISCOUNT",
+      "baseCost": "100",
+      "originalCurrency": "Gold Leaf",
+      "type": "fairy"
+    },
+    {
+      "id": "UNDERDOG_COMMISSION",
+      "baseCost": "1e5",
+      "originalCurrency": "Gold Leaf",
+      "type": "fairy"
+    },
+    {
+      "id": "MEDAL_XRAY",
+      "baseCost": "8e11",
+      "originalCurrency": "Gold Leaf",
+      "type": "fairy"
+    }
+  ],
+  "upgrades": [
+    {
+      "id": "upgrade_hp_graphite",
+      "stat": "maxHp",
+      "originalCurrency": "Graphite",
+      "baseCost": "2",
+      "costMultiplier": "1.625",
+      "type": "normal"
+    },
+    {
+      "id": "upgrade_atk_graphite",
+      "stat": "attack",
+      "originalCurrency": "Graphite",
+      "baseCost": "5",
+      "costMultiplier": "1.5",
+      "type": "normal"
+    },
+    {
+      "id": "upgrade_spd_graphite",
+      "stat": "attackSpeed",
+      "originalCurrency": "Graphite",
+      "baseCost": "10",
+      "costMultiplier": "2500",
+      "type": "normal"
+    },
+    {
+      "id": "upgrade_critdmg_wax",
+      "stat": "critDmg",
+      "originalCurrency": "Wax",
+      "baseCost": "200",
+      "costMultiplier": "25",
+      "type": "fire"
+    },
+    {
+      "id": "upgrade_atk_wax",
+      "stat": "attack",
+      "originalCurrency": "Wax",
+      "baseCost": "4",
+      "costMultiplier": "2.9",
+      "type": "fire"
+    },
+    {
+      "id": "upgrade_dodge_wax",
+      "stat": "dodge",
+      "originalCurrency": "Wax",
+      "baseCost": "1500",
+      "costMultiplier": "1300",
+      "type": "water"
+    },
+    {
+      "id": "upgrade_hp_charcoal",
+      "stat": "maxHp",
+      "originalCurrency": "Charcoal",
+      "baseCost": "2",
+      "costMultiplier": "2",
+      "type": "electric"
+    },
+    {
+      "id": "upgrade_armor_charcoal",
+      "stat": "armor",
+      "originalCurrency": "Charcoal",
+      "baseCost": "4",
+      "costMultiplier": "5.5",
+      "type": "electric"
+    },
+    {
+      "id": "upgrade_glancing_charcoal",
+      "stat": "glancingBlow",
+      "originalCurrency": "Charcoal",
+      "baseCost": "2e3",
+      "costMultiplier": "31.3",
+      "type": "electric"
+    },
+    {
+      "id": "upgrade_maxdamage_coffee",
+      "stat": "maxDamage",
+      "originalCurrency": "Coffee",
+      "baseCost": "4",
+      "costMultiplier": "200",
+      "type": "bug"
+    },
+    {
+      "id": "upgrade_counter_coffee",
+      "stat": "counter",
+      "originalCurrency": "Coffee",
+      "baseCost": "50",
+      "costMultiplier": "50625",
+      "type": "bug"
+    },
+    {
+      "id": "upgrade_parrydmg_coffee",
+      "stat": "parryDmg",
+      "originalCurrency": "Coffee",
+      "baseCost": "2500",
+      "costMultiplier": "900",
+      "type": "flying"
+    },
+    {
+      "id": "upgrade_mindmg_ink",
+      "stat": "minDamage",
+      "originalCurrency": "Ink",
+      "baseCost": "3",
+      "costMultiplier": "500",
+      "type": "ground"
+    },
+    {
+      "id": "upgrade_critchance_ink",
+      "stat": "critChance",
+      "originalCurrency": "Ink",
+      "baseCost": "500",
+      "costMultiplier": "23730",
+      "type": "rock"
+    },
+    {
+      "id": "upgrade_execute_ink",
+      "stat": "execute",
+      "originalCurrency": "Ink",
+      "baseCost": "3e3",
+      "costMultiplier": "35e28",
+      "type": "ground"
+    },
+    {
+      "id": "upgrade_lifesteal_marker",
+      "stat": "lifesteal",
+      "originalCurrency": "Marker",
+      "baseCost": "2",
+      "costMultiplier": "1300",
+      "type": "dark"
+    },
+    {
+      "id": "upgrade_armorpen_marker",
+      "stat": "armorPen",
+      "originalCurrency": "Marker",
+      "baseCost": "5",
+      "costMultiplier": "2",
+      "type": "fighting"
+    },
+    {
+      "id": "upgrade_blockamount_marker",
+      "stat": "blockAmount",
+      "originalCurrency": "Marker",
+      "baseCost": "2500",
+      "costMultiplier": "4",
+      "type": "psychic"
+    },
+    {
+      "id": "upgrade_bleed_acrylic",
+      "stat": "bleedChance",
+      "originalCurrency": "Acrylic",
+      "baseCost": "3",
+      "costMultiplier": "8e3",
+      "type": "steel"
+    },
+    {
+      "id": "upgrade_plague_acrylic",
+      "stat": "plagueChance",
+      "originalCurrency": "Acrylic",
+      "baseCost": "5",
+      "costMultiplier": "6e7",
+      "type": "poison"
+    },
+    {
+      "id": "upgrade_hypnotize_acrylic",
+      "stat": "hypnotizeChance",
+      "originalCurrency": "Acrylic",
+      "baseCost": "200",
+      "costMultiplier": "1e9",
+      "type": "poison"
+    },
+    {
+      "id": "upgrade_atk_spray",
+      "stat": "attack",
+      "originalCurrency": "Spray",
+      "baseCost": "3",
+      "costMultiplier": "1.8",
+      "type": "ghost"
+    },
+    {
+      "id": "upgrade_accuracy_spray",
+      "stat": "accuracy",
+      "originalCurrency": "Spray",
+      "baseCost": "5",
+      "costMultiplier": "5",
+      "type": "ice"
+    },
+    {
+      "id": "upgrade_hinder_spray",
+      "stat": "hinderChance",
+      "originalCurrency": "Spray",
+      "baseCost": "500",
+      "costMultiplier": "250",
+      "type": "ice"
+    },
+    {
+      "id": "upgrade_hp_photon",
+      "stat": "maxHp",
+      "originalCurrency": "Photon",
+      "baseCost": "20",
+      "costMultiplier": "1.6",
+      "type": "dragon"
+    },
+    {
+      "id": "upgrade_burnchance_photon",
+      "stat": "burnChance",
+      "originalCurrency": "Photon",
+      "baseCost": "200",
+      "costMultiplier": "1e3",
+      "type": "dragon"
+    },
+    {
+      "id": "upgrade_electrocutechance_photon",
+      "stat": "electrocuteChance",
+      "originalCurrency": "Photon",
+      "baseCost": "2e3",
+      "costMultiplier": "1e7",
+      "type": "dragon"
+    },
+    {
+      "id": "upgrade_parry_gold_leaf",
+      "stat": "parry",
+      "originalCurrency": "Gold Leaf",
+      "baseCost": "10",
+      "costMultiplier": "5",
+      "type": "fairy"
+    },
+    {
+      "id": "upgrade_multistrike_gold_leaf",
+      "stat": "multiStrikeChance",
+      "originalCurrency": "Gold Leaf",
+      "baseCost": "25",
+      "costMultiplier": "25",
+      "type": "fairy"
+    },
+    {
+      "id": "upgrade_absorb_gold_leaf",
+      "stat": "absorb",
+      "originalCurrency": "Gold Leaf",
+      "baseCost": "1",
+      "costMultiplier": "100",
+      "type": "fairy"
+    },
+    {
+      "id": "upgrade_opacity_gold_leaf",
+      "stat": "opacity",
+      "originalCurrency": "Gold Leaf",
+      "baseCost": "5",
+      "costMultiplier": "50",
+      "type": "fairy"
+    },
+    {
+      "id": "upgrade_goldenluckchance_gold_leaf",
+      "stat": "goldenLuckChance",
+      "originalCurrency": "Gold Leaf",
+      "baseCost": "25e3",
+      "costMultiplier": "250",
+      "type": "fairy"
+    },
+    {
+      "id": "upgrade_goldenluckdmg_gold_leaf",
+      "stat": "goldenLuckDamage",
+      "originalCurrency": "Gold Leaf",
+      "baseCost": "5e4",
+      "costMultiplier": "200",
+      "type": "fairy"
+    },
+    {
+      "id": "upgrade_secret_burn_damage_graphite",
+      "stat": "burnDamage",
+      "originalCurrency": "Graphite",
+      "baseCost": "new r(\"1e40\")",
+      "costMultiplier": "10",
+      "type": "normal"
+    },
+    {
+      "id": "upgrade_secret_poison_wax",
+      "stat": "poisonChance",
+      "originalCurrency": "Wax",
+      "baseCost": "new r(\"1e80\")",
+      "costMultiplier": "12",
+      "type": "grass"
+    },
+    {
+      "id": "upgrade_secret_slow_charcoal",
+      "stat": "slowChance",
+      "originalCurrency": "Charcoal",
+      "baseCost": "new r(\"1e100\")",
+      "costMultiplier": "15",
+      "type": "electric"
+    },
+    {
+      "id": "upgrade_secret_frailty_coffee",
+      "stat": "frailtyChance",
+      "originalCurrency": "Coffee",
+      "baseCost": "new r(\"1e80\")",
+      "costMultiplier": "18",
+      "type": "flying"
+    },
+    {
+      "id": "upgrade_secret_freeze_ink",
+      "stat": "freezeChance",
+      "originalCurrency": "Ink",
+      "baseCost": "new r(\"1e60\")",
+      "costMultiplier": "20",
+      "type": "rock"
+    },
+    {
+      "id": "upgrade_secret_block_marker",
+      "stat": "blockChance",
+      "originalCurrency": "Marker",
+      "baseCost": "new r(\"1e60\")",
+      "costMultiplier": "22",
+      "type": "dark"
+    },
+    {
+      "id": "upgrade_secret_haste_acrylic",
+      "stat": "hasteChance",
+      "originalCurrency": "Acrylic",
+      "baseCost": "new r(\"1e50\")",
+      "costMultiplier": "25",
+      "type": "steel"
+    },
+    {
+      "id": "upgrade_secret_energywave_spray",
+      "stat": "energyWaveChance",
+      "originalCurrency": "Spray",
+      "baseCost": "new r(\"1e45\")",
+      "costMultiplier": "30",
+      "type": "ghost"
+    },
+    {
+      "id": "upgrade_secret_remedy_photon",
+      "stat": "remedy",
+      "originalCurrency": "Photon",
+      "baseCost": "new r(\"1e30\")",
+      "costMultiplier": "40",
+      "type": "dragon"
+    },
+    {
+      "id": "upgrade_secret_curse_gold_leaf",
+      "stat": "curseChance",
+      "originalCurrency": "Gold Leaf",
+      "baseCost": "new r(\"1e15\")",
+      "costMultiplier": "50",
+      "type": "fairy"
+    }
+  ]
+}
