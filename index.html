@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="./favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=block"
+    rel="stylesheet">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H7T7HJ1VSM"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-H7T7HJ1VSM');
+  </script>
+  <script>
+    // Temporary local asset fallback: only v6.jpg was present in the saved capture.
+    // Capture image load failures, including protagonist paths retained in older saves.
+    document.addEventListener('error', function (event) {
+      const img = event.target;
+      if (!(img instanceof HTMLImageElement)) return;
+      const requested = new URL(img.src, document.baseURI);
+      if (!/\/assets\/protagonist\/v\d+\.jpg$/.test(requested.pathname)) return;
+      if (requested.pathname.endsWith('/v6.jpg')) return;
+      img.src = './assets/protagonist/v6.jpg';
+    }, true);
+  </script>
+  <title>Rejected Draft</title>
+  <script type="module" crossorigin src="./assets/main-DksMQC7H.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/index-BRULzdMO.js">
+  <link rel="modulepreload" crossorigin href="./assets/vendor-Bg7E4MMW.js">
+  <link rel="modulepreload" crossorigin href="./assets/data-sketches-B3moo1Ps.js">
+  <link rel="modulepreload" crossorigin href="./assets/locale-en-DoxHk2Y3.js">
+  <link rel="modulepreload" crossorigin href="./assets/data-skill-tree-DvCthzIY.js">
+  <link rel="modulepreload" crossorigin href="./assets/game-store-DKXacG7P.js">
+  <link rel="stylesheet" crossorigin href="./assets/index-DFVUL5m0.css">
+  <link rel="stylesheet" crossorigin href="./assets/vendor-BZV40eAE.css">
+  <link rel="stylesheet" crossorigin href="./assets/main-B5VqR7XB.css">
+</head>
+
+<body>
+  <div id="root"></div>
+</body>
+
+</html>
