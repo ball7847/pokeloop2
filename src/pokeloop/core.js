@@ -72,7 +72,7 @@ export function baseEffectiveness(attackType,defendingTypes) {
  known(attackType);
  return defendingTypes.reduce((m,t)=>{
   known(t);
-  const factor=(IMMUNE[attackType]||[]).includes(t)?.25:
+  const factor=(IMMUNE[t]||[]).includes(attackType)?.25:
    SUPER[attackType].includes(t)?2:
    (NOT_EFFECTIVE[attackType]||[]).includes(t)?.5:1;
   return m*factor;
