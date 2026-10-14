@@ -83,7 +83,7 @@ export function assimilationMultiplier(assimilation, targetTypes, mode="attack")
  return Object.entries(assimilation).reduce((factor,[type,percent])=>{
   known(type); const amount=numeric(percent)/100;
   if(amount===0)return factor;
-  const matches=mode==="attack"?SUPER[type]:RESIST[type];
+  const matches=mode==="attack"?SUPER[type]:[...RESIST[type],...(IMMUNE[type]||[])];
   return targetTypes.reduce((value,other)=>{
    known(other);
    return matches.includes(other)? value*(mode==="attack"?1+amount:1/(1+amount)):value;
