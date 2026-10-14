@@ -5,7 +5,8 @@
 ## Implemented as isolated modules
 
 - `core.js`: 18 Pokémon types, 10 fixed tiers, effectiveness (0× → 0.25×), multiplicative assimilation, per-run 18-energy state, first milestone at 1,025, sequential tier unlock, 50%-retained locked energy, dual-type reward split, equal per-type generator allocation, tier concept averaging, Redraw resets and persistent Normal milestones/assimilation/Stellar Energy.
-- `pokemon.js`: initial sample species roster, boss *metadata only*, and a provisional progression-sensitive encounter filter.
+- `pokemon.js`: initial sample species roster with original-style per-Pokémon independent rarity rolls, **once at Redraw**, without tier gates or guaranteed encounters; evolved forms and bosses excluded.
+- `templates.js`: all 233 original combat template IDs and rarities. Pokémon reference templates of matching rarity, reusing them rather than hand-authoring combat stats. Current ID assignment is provisional.
 - `shop-mapping.json`: all 47 existing tool IDs + 43 combat upgrade IDs mapped to 18 types; **mapping is provisional**, retains original numeric cost fields and effects by reference.
 - `core.test.mjs`: core invariant checks. From repo root: `node src/pokeloop/core.test.mjs` (Node.js 22+).
 
