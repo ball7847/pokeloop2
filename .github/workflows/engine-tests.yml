@@ -60,10 +60,17 @@ jobs:
           SERVER_PID=$!
           trap 'kill $SERVER_PID || true' EXIT
           node tests/integration/browserSmoke.mjs
-      - name: Upload Chromium failure screenshot
+      - name: Print local server log if browser fails
+        if: failure()
+        run: |
+          echo "=== HTTP server diagnostics ==="
+          cat /tmp/pokeloop-http.log || true
+      - name: Upload Chromium failure diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: chromium-smoke-failure
-          path: /tmp/pokeloop-browser-failure.png
+          path: |
+            /tmp/pokeloop-browser-failure.png
+            /tmp/pokeloop-http.log
           if-no-files-found: ignore
