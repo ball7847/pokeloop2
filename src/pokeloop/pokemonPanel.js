@@ -29,10 +29,17 @@ function loadOrRoll(state) {
   const nextKey = currentKey(state);
   if (runKey === nextKey && snapshot) return;
   runKey = nextKey;
+  // Keep each save slot / universe / redraw snapshot separately.
+  // A single {key,ids} entry previously discarded the old slot on switches.
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(STORAGE)); } catch {}
-  if (saved && saved.key === nextKey && Array.isArray(saved.ids)) {
-    const candidate = saved.ids.map(id => lookup.get(id));
+  const records = saved?.records && typeof saved.records === 'object'
+    ? saved.records : Object.create(null);
+  if (saved?.key && Array.isArray(saved.ids) && !Object.hasOwn(records, saved.key)) {
+    records[saved.key] = saved.ids; // legacy single-slot migration
+  }
+  if (Array.isArray(records[nextKey])) {
+    const candidate = records[nextKey].map(id => lookup.get(id));
     if (candidate.every(p => p && !p.evolved && !p.boss)) {
       snapshot = candidate;
       return;
@@ -53,7 +60,8 @@ function loadOrRoll(state) {
   }
   snapshot = rollRunRoster({ chances });
   try {
-    localStorage.setItem(STORAGE,JSON.stringify({key:nextKey,ids:snapshot.map(p=>p.id)}));
+    records[nextKey] = snapshot.map(p => p.id);
+    localStorage.setItem(STORAGE, JSON.stringify({ records }));
   } catch {}
 }
 
