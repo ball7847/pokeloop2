@@ -21,6 +21,16 @@ try {
     return root && root.textContent?.trim().length > 30;
   }, null, { timeout: 30000 });
 
+  // Real DOM integration: the Pokémon panel must mount beside the app.
+  await page.waitForSelector('#pokeloop-pokemon-panel button', {timeout:15000});
+  await page.locator('#pokeloop-pokemon-panel button').first().click();
+  const panelCheck=await page.evaluate(()=>{
+    const panel=document.querySelector('#pokeloop-pokemon-panel');
+    return panel?.querySelector('button')?.getAttribute('aria-expanded')==='true' &&
+      panel.textContent.includes('임시 배정');
+  });
+  if(!panelCheck) throw new Error('Pokémon encounter panel is not interactive');
+
   // Verify exported functionality inside Chromium, not just file presence.
   const moduleResults = await page.evaluate(async () => {
     const modules = await Promise.all([
