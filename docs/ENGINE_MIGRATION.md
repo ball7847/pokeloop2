@@ -163,3 +163,20 @@ Remaining release blockers:
 2. Browser test an actually deployed development branch, not `main`.
 3. Compare battle outcome, HP carryover and auto-battle after refresh.
 4. Only then begin the ten-Pokémon vertical slice.
+
+## Phase 12 — Browser smoke-test automation
+
+Added `tests/integration/browserSmoke.mjs` and a Chromium
+`browser-smoke` job to GitHub Actions. It serves the checked-out
+development branch with a local HTTP server, loads `index.html`,
+requires visible root content, imports the extracted engine modules,
+and fails for uncaught page errors / failed local HTTP responses.
+
+**Status:** smoke-test *configuration* has been committed. This chat
+environment cannot directly run a GUI browser against GitHub, and no
+successful GitHub Actions execution has been confirmed. A successful
+smoke job is needed before concluding the branch renders.
+
+This is a rendering/import smoke test, not a full combat simulation.
+Combat actions, status reset, rewards and save/load require separately
+verified interactive tests.
