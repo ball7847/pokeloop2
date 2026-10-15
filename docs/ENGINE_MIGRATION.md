@@ -195,3 +195,20 @@ The workflow also uploads a screenshot artifact if the Chromium smoke fails.
 flow (start/kill/auto-next/rematch/save/refresh). The browser test executes
 representative module logic, not scripted game battles. Do not merge the
 branch or claim that the full game works solely on this smoke-test setup.
+
+## Phase 14 — live store initialization probe
+
+The Chromium test now imports the **actual** compiled game-store module
+and checks the existing exported store (`ve as u`) for `getState()`,
+`challengeSketch` and `combatState`. The test will fail if the app shell
+renders but the original combat state/action is missing. In total the
+browser script reports 13 runtime checks.
+
+The GitHub connector returned no pull-request workflow runs or commit
+statuses for the previous head. Importantly, the available run lookup
+only returns PR-triggered runs, so an empty result is **not proof that
+push-triggered GitHub Actions did not execute**.
+
+No authenticated Chromium execution or manual gameplay result has been
+observed here. Next milestone remains confirming a green workflow and
+running real combat scenarios on a branch-isolated preview.
