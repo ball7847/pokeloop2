@@ -313,3 +313,25 @@ CI workflow. Roster pairings are explicitly temporary, awaiting
 playtesting and later per-planet 1:N species selection.
 
 No type-effectiveness bonus or evolutionary spawn replacement is active.
+
+## Phase 21 — live 10-Pokémon catalog presentation
+
+The ten-species prototype roster is now connected to the original
+`assets/data-sketches-B3moo1Ps.js` catalog. Original sketch entries
+retain their **stable original ID, exact stats/reward objects, rarity,
+appearance logic, and existing original artwork**. For mapped entries,
+the shared catalog object's visible `name` becomes the Pokémon's Korean
+name plus Korean type labels (e.g. `이상해씨 · 풀/독`), and a
+`pokemon` metadata field is attached. Both gallery and battle components
+already consume the shared catalog objects.
+
+The original name-to-ID mapping is constructed **before** overlaying names
+for compatibility with original source-name references. Nonprototype
+entries remain unchanged. Pokémon art is **not** implemented, so these
+entries still show Rejected Draft artwork.
+
+The Chromium smoke script asserts that the actual exported catalog now
+contains the species name, type labels, original ID and combat stats.
+GitHub Actions checks the syntax of the modified catalog as well.
+A complete browser gameplay pass remains unconfirmed; Pokémon moves,
+type effectiveness, and evolution are not yet active.
