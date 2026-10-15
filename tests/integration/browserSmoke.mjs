@@ -182,6 +182,42 @@ try {
   });
   console.log('Live victory settlement verified:', JSON.stringify(settlement));
 
+  // Actual queue-next action while fighting: it must retain the requested
+  // enemy and remember the auto-challenge state for later restoration.
+  // This asserts queue creation only; automatic transition still needs a
+  // battle-end integration test.
+  const queued = await page.evaluate(async () => {
+    const { u: store } = await import('./assets/game-store-DKXacG7P.js');
+    const original = store.getState();
+    const first = 'stick man';
+    const next = 'training_dummy_1';
+    try {
+      store.setState({
+        combatState: { ...original.combatState, isFighting: true, enemyId: first },
+        fundamentals: { ...original.fundamentals, challengeQueueUnlocked: 1, maxVictories: Math.max(5, original.fundamentals.maxVictories || 0) },
+        sketchVictories: { ...original.sketchVictories, [next]: 0 },
+        queuedChallenge: null,
+        autoChallengeActive: true,
+        randomizerActive: false,
+      });
+      store.getState().queueNextChallenge(next);
+      const result = store.getState();
+      if (result.queuedChallenge?.sketchId !== next || result.queuedChallenge?.mode !== 'next') {
+        throw new Error('Next encounter was not queued');
+      }
+      if (result.queuedChallenge.restoreAutoChallenge !== true) {
+        throw new Error('Auto challenge restoration flag lost');
+      }
+      if (result.autoChallengeActive !== false) {
+        throw new Error('Auto challenge must pause while switching');
+      }
+      return { target: next, mode: result.queuedChallenge.mode };
+    } finally {
+      store.setState(original, true);
+    }
+  });
+  console.log('Live next-encounter queue verified:', JSON.stringify(queued));
+
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(`Chromium smoke passed: visible app root, ${moduleResults.modules} engine modules, ${moduleResults.checks} runtime checks`);
 } catch (error) {
