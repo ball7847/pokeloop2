@@ -17,7 +17,8 @@
    and glossary-unlock gating.
 3. `enemyAttackTiming.mjs` now calculates the enemy attack interval using the original Slow/Haste/BananaSlip order. The combat tick on the development branch calls it directly.
 4. `inspirationMultiplier.mjs` is integrated into both player and enemy EnergyWave damage paths. It preserves the original Decimal arithmetic for the Inspiration stack multiplier only; the remaining damage pipeline has not been extracted.
-5. Pure-module tests in `tests/combat/` cover encounter boundaries and
+5. `resolveCombatHit.mjs` is a transparent adapter for the original `rn` damage resolver exported from `data-skill-tree-DvCthzIY.js`. All six calls in the game-store bundle now go through this adapter with the same arguments and return value. It does not alter damage, critical hits, defense, counters, or type effectiveness.
+6. Pure-module tests in `tests/combat/` cover encounter boundaries and
    player attack timing; `.github/workflows/engine-tests.yml` is configured
    to run Node syntax checks and tests on supported events.
 
@@ -25,7 +26,7 @@
 
 - GitHub commits and content presence have been confirmed. An actual
   successful CI run or in-browser playtest has **not** yet been verified.
-- Four targeted pieces have been extracted. Full damage resolution,
+- Five targeted pieces have been extracted. Full damage resolution,
   status application, rewards, save/load and remaining combat logic still live
   in the original compiled bundle.
 - Future changes should preserve the original encounter data shape and
@@ -45,3 +46,6 @@
 - Compare default combat pacing and loot against baseline.
 
 **Do not merge or call gameplay complete until this checklist is verified.**
+
+## Damage-path limitation
+The complete original damage resolver (`rn` alias) remains bundled in `data-skill-tree-DvCthzIY.js`. The adapter is an integration seam, **not** an extracted damage formula. Do not add Pokémon type effectiveness until ordinary hits, reflected hits, counters, and every damage type are mapped and regression-tested.
