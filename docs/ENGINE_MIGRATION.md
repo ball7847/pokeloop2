@@ -241,3 +241,17 @@ store action `challengeSketch('stick man', ...)`:
 These assertions have been **committed, but are not confirmed passing
 in Chromium**. Victory/reward settlement and automatic next-fight
 transitions are not yet covered by a deterministic real-store test.
+
+## Phase 17 — real reward settlement contract
+
+Chromium smoke testing now invokes the **production**
+`processCombatRewards('stick man', 1, {}, {}, 0, 'combat')` action in its
+isolated browser context with zero synthetic stat/currency reward inputs.
+It checks the per-sketch win count, per-run count, total win count, and
+`combatState.lastVictory` reference, then restores the previous Zustand
+state. This focuses on victory **bookkeeping**, not numeric reward amounts,
+which will need baseline comparisons.
+
+The new test has been committed but has **not** been observed passing in
+a running Chromium job. The automated next-target selection and complete
+victory/death transition remain unverified; no live-branch merger is justified.
