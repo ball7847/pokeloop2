@@ -1,45 +1,45 @@
-# PokéLoop 2 engine extraction — phase 1
+# PokéLoop 2 — engine extraction progress
 
-## Baseline and safety
+## Branch policy
+- Original baseline: `pokeloop-dev`, unchanged.
+- Active work: `feature/engine-extraction`.
+- `main` must not be modified.
 
-- Source: `pokeloop-dev` (preserved, no direct changes).
-- Work branch: `feature/engine-extraction`.
-- Current site uses compiled/minified ES modules from `assets/`, loaded by `index.html`.
-- No `package.json` was found in the repository root at the start of extraction.
-- **The new module is not connected to the live game yet.** Existing behavior is unchanged.
+## Implemented in development branch
 
-## Verified combat entry point
+1. `createEncounterState.mjs` now initializes encounters through
+   `assets/game-store-DKXacG7P.js` → `challengeSketch`.
+   On every battle, temporary player/enemy statuses start empty.
+   Positive remaining player HP persists on chained fights.
+2. `playerAttackTiming.mjs` now calculates the player attack interval.
+   Its formula is extracted from the original combat tick and preserves:
+   Slow, Haste, BananaSlip, Flow State, first-attack gating,
+   and glossary-unlock gating.
+3. Pure-module tests in `tests/combat/` cover encounter boundaries and
+   player attack timing; `.github/workflows/engine-tests.yml` is configured
+   to run Node syntax checks and tests on supported events.
 
-Source: `assets/game-store-DKXacG7P.js`, store action `challengeSketch:(e,t=!1)=>...`.
+## Important limitations
 
-On chained fights (`t=true`), the original code retains positive
-`combatState.currentPlayerHp` **and** `combatState.statuses.player`.
-Otherwise it starts at `playerStats.maxHp` and empty player statuses.
-All new fights begin with empty enemy statuses.
+- GitHub commits and content presence have been confirmed. An actual
+  successful CI run or in-browser playtest has **not** yet been verified.
+- Only two targeted pieces have been extracted. Enemy attack timing,
+  damage calculation, status application, rewards, save/load and all
+  other combat logic still live in the original compiled bundle.
+- Future changes should preserve the original encounter data shape and
+  all high-precision numerical values.
 
-## PokéLoop design delta
+## Verification checklist before merging
 
-- Preserve positive current HP in consecutive battles.
-- Reset player and enemy temporary combat statuses before **every** fight,
-  including automatic consecutive fights and rematches.
-- Keep unrelated per-run reward progression untouched.
-- Keep original stat scaling and rewards until verified independently.
+- Node syntax check for the original bundle and extracted .mjs modules.
+- All pure tests passing.
+- Open the development branch as a deployable preview and inspect
+  browser console/network (the `../src/...` imports must load).
+- Verify first fight, consecutive fight, automatic next fight, rematch,
+  switching foe, victory, defeat, and save/reload.
+- Check that player HP carryover is unchanged but all temporary status
+  stacks are cleared at fight start.
+- Check Haste/Slow/BananaSlip/Flow State timings and enemy AI.
+- Compare default combat pacing and loot against baseline.
 
-## Extracted module
-
-- `src/engine/combat/createEncounterState.mjs`: pure encounter-state constructor.
-- `tests/combat/createEncounterState.test.mjs`: Node built-in test runner.
-- Run locally: `node --test tests/combat/*.test.mjs` (Node 18+).
-
-## Next integration step
-
-1. Establish a reproducible local test harness for the existing bundle.
-2. Locate every battle-start path, not only `challengeSketch`.
-3. Route actual encounter initialization through the pure function or its
-   behaviorally equivalent adapter.
-4. Compare encounter fields before/after integration, allowing only the
-   intentional player-status reset on chained fights.
-5. Check first fight, automatic chaining, manual rematch, different foe,
-   remaining HP, and save/load.
-
-Do not claim the status-reset gameplay change is live before integration.
+**Do not merge or call gameplay complete until this checklist is verified.**
