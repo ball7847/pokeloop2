@@ -226,3 +226,18 @@ the original store state after assertions.
 This verifies the live encounter action only **when the Chromium CI job
 actually runs and passes**. It is not a victory/defeat/reward/auto-next
 playtest, and a successful outcome has not yet been observed.
+
+## Phase 16 — manual rematch smoke
+
+The Chromium smoke now exercises two consecutive calls to the actual
+store action `challengeSketch('stick man', ...)`:
+
+1. Chained encounter (`true`): carries 50% remaining HP, discards player
+   Haste/Inspiration and enemy Poison stacks.
+2. Manual rematch (`false`): seeds a completed encounter with 25% remaining
+   HP, then requires a new fight at full HP and with no player/enemy
+   status stacks.
+
+These assertions have been **committed, but are not confirmed passing
+in Chromium**. Victory/reward settlement and automatic next-fight
+transitions are not yet covered by a deterministic real-store test.
