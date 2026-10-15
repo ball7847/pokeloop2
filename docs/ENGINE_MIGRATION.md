@@ -99,3 +99,23 @@ The remainder of the damage pipeline remains compiled and unmodified.
 Next: test the actual compiled resolver and compare deterministic damage
 scenarios before extracting further stages or adding Pokémon effectiveness.
 No successful CI or browser-playtest result has been independently observed.
+
+## Armor mitigation extraction (phase 9)
+
+The original primary-hit function `Aa` reduces damage after Block,
+Surrealism and armor penetration, but before percentage Absorb,
+ParalysisExposed, Electrocute, Frailty and Brittle.
+
+`src/engine/combat/armorMitigation.mjs` is now wired into the
+`data-skill-tree-DvCthzIY.js` primary-hit resolver at the old
+`r.max(0,xt.eq(0)?h:h.minus(xt))` statement. It preserves Decimal
+arithmetic and retains original upstream effective-armor calculation,
+including immunity checks, penetration and Surrealism.
+
+Added isolated armor tests and call-site assertions.
+This is **not** a complete rewrite of armor, critical strike or absorption,
+and no Pokémon type multiplier has been added.
+
+The CI integration-test assertions were corrected to tolerate multiple
+imports in the damage resolver bundle instead of requiring a specific
+import to come first. Tests and browser play still require a confirmed run.
