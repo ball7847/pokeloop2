@@ -432,3 +432,24 @@ type/assimilation integration after recovering precise original agreement,
 prototype mapping approval (nine offline placeholders), first real playable
 Pokémon visuals, layer progression, and Star Dust prestige economy. These
 must not be reported as complete.
+
+## Phase 27 — close uncovered training-status path and CI triggers
+
+Reviewed the original `startTrainingDummy` battle-entry implementation:
+training encounters already reset `statuses.player`, `statuses.enemy`,
+`pendingCombatEffects`, and Flow state, and initialize player HP to
+maximum. No change to the original combat behavior was required.
+Added a regression assertion in `tests/integration/designGuards.test.mjs`
+to preserve these facts alongside the normal `challengeSketch` reset.
+
+Also fixed the GitHub Actions pull-request path filter to react to
+`src/pokemon/**` and `assets/data-sketches-B3moo1Ps.js`.
+Previously a PR touching only these paths would not trigger CI even
+though it could break the game. Evaluated source-based checks verified
+the training reset tokens and the CI paths; **no green browser or
+GitHub Actions run has been observed**.
+
+Still outstanding: verifying actual runtime + saves, selecting approved
+species and type assignments, integrating original auto-hit effectiveness
+with the previously agreed Ditto assimilation formula, and implementing
+actual space-travel economy. No unapproved balance changes made.
