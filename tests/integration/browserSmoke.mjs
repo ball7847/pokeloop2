@@ -85,6 +85,50 @@ try {
     return { checks: 13, modules: modules.length };
   });
 
+  // Real store-action test in a disposable browser context. It exercises the
+  // *actual* compiled challengeSketch action, not only createEncounterState.
+  const actualBattle = await page.evaluate(async () => {
+    const { u: store } = await import('./assets/game-store-DKXacG7P.js');
+    const snapshot = store.getState();
+    if (typeof store.setState !== 'function') throw new Error('Missing setState');
+    const enemyId = 'stick man'; // Verified ID from the original sketch catalog.
+    try {
+      store.setState({
+        combatState: {
+          ...snapshot.combatState,
+          isFighting: false,
+          enemyId: null,
+          lastVictory: { time: Date.now() },
+          currentPlayerHp: snapshot.playerStats.maxHp.times(0.5),
+          statuses: { player: { Haste: 700, Inspiration: 55 }, enemy: { Poison: 4 } },
+        },
+        challengeCooldownUntil: 0,
+        autoChallengeActive: false,
+        autoRetryActive: false,
+        combatDiscoveryAnimation: null,
+        devSettings: { ...snapshot.devSettings, disableDiscoveryAnimations: true },
+        sketchVictories: { ...snapshot.sketchVictories, [enemyId]: 0 },
+        fundamentals: { ...snapshot.fundamentals, maxVictories: Math.max(1, snapshot.fundamentals.maxVictories) },
+      });
+      store.getState().challengeSketch(enemyId, true);
+      const combat = store.getState().combatState;
+      if (!combat.isFighting || combat.enemyId !== enemyId) {
+        throw new Error('Live challengeSketch failed to begin encounter');
+      }
+      if (!combat.currentPlayerHp.eq(snapshot.playerStats.maxHp.times(0.5))) {
+        throw new Error('Live chained battle failed to carry player HP');
+      }
+      if (Object.keys(combat.statuses.player).length || Object.keys(combat.statuses.enemy).length) {
+        throw new Error('Live chained battle inherited temporary statuses');
+      }
+      return { enemyId, hpCarryover: true, stacksReset: true };
+    } finally {
+      // Prevent side effects from polluting later tests in this fresh context.
+      store.setState(snapshot, true);
+    }
+  });
+  console.log('Live battle startup verified:', JSON.stringify(actualBattle));
+
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(`Chromium smoke passed: visible app root, ${moduleResults.modules} engine modules, ${moduleResults.checks} runtime checks`);
 } catch (error) {
