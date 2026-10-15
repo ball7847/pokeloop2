@@ -18,3 +18,14 @@ test('original battle action remains present', () => {
   assert.match(game, /challengeSketch:\(e,t=!1\)=>/);
   assert.match(game, /combatState:createEncounterState\(/);
 });
+
+test('training-dummy battle starts with clean temporary status state', () => {
+  const start = game.indexOf('startTrainingDummy:');
+  const end = game.indexOf('endTrainingDummy:', start);
+  assert.ok(start >= 0 && end > start, 'Training entry point must remain available');
+  const training = game.slice(start,end);
+  assert.match(training, /statuses:\{player:\{\},enemy:\{\}\}/);
+  assert.match(training, /pendingCombatEffects:\[\]/);
+  assert.match(training, /currentPlayerHp:r\.playerStats\.maxHp/);
+  assert.match(training, /isInFlowState:!1/);
+});
