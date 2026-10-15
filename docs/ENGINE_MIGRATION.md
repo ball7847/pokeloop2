@@ -357,3 +357,22 @@ move selection or evolution. Do not apply the effectiveness factor to
 the entire combat resolver wrapper, because it also handles counters,
 reflections and unrelated status damage. Attach it at the individual
 typed-hit stage once that mechanic is specified and verified.
+
+## Phase 23 — prototype move slots wired as catalog metadata
+
+Added `src/pokemon/prototypeMoves.mjs` with four **provisional,
+playtest-only** typed move slots for each of the ten unevolved Pokémon
+(40 total). The move definitions do not claim a legal four-move
+learnset for any particular game/generation. Some names normally
+describe status or fixed-damage moves; **they are labels only** until
+move power, effect and selection rules are designed.
+
+`previewMoveMatchup` exposes the existing 18-type effectiveness
+and a boolean same-type eligibility flag. It does not set the final
+STAB multiplier, assimilation coefficient, or damage value.
+
+The existing catalog overlay in `assets/data-sketches-B3moo1Ps.js`
+now attaches four move descriptors as `pokemon.moves` to each mapped
+enemy entry. A Chromium catalog smoke assertion and Node unit tests
+verify metadata shape. **No attack selection or battle damage changes
+have been made.** Live browser success is not yet confirmed.
