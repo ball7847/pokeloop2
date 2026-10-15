@@ -1,0 +1,39 @@
+name: Engine tests
+
+on:
+  push:
+    branches:
+      - feature/engine-extraction
+  pull_request:
+    paths:
+      - 'src/engine/**'
+      - 'tests/**'
+      - 'assets/game-store-DKXacG7P.js'
+      - '.github/workflows/engine-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax of extracted module and tests
+        run: |
+          node --check src/engine/combat/createEncounterState.mjs
+          node --check tests/combat/createEncounterState.test.mjs
+          node --check assets/game-store-DKXacG7P.js
+      - name: Run encounter tests
+        run: node --test tests/combat/*.test.mjs
+      - name: Validate integration import path and single call site
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const bundle = fs.readFileSync('assets/game-store-DKXacG7P.js','utf8');
+          assert.match(bundle, /^import\{createEncounterState\}from"\.\.\/src\/engine\/combat\/createEncounterState\.mjs";/);
+          assert.equal((bundle.match(/combatState:createEncounterState\(/g)||[]).length,1);
+          console.log('Integration link verified');
+          NODE
