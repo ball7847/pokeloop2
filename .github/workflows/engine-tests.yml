@@ -32,3 +32,22 @@ jobs:
         run: |
           node tests/integration/combatBundle.test.mjs
           node tests/integration/moduleGraph.test.mjs
+
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Serve dev build and smoke-test Chromium
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/pokeloop-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          node tests/integration/browserSmoke.mjs
