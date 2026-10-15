@@ -68,7 +68,7 @@ try {
     assert(absorb.applyAbsorbMitigation(D(80), D(25), DecimalStub).remaining.value === 60, 'Absorb');
     const marker = { hp: '1e100000' };
     assert(hit.resolveCombatHit(x => x, marker) === marker, 'Damage call-through');
-    return { checks: 11, modules: modules.length };
+    return { checks: 12, modules: modules.length };
   });
 
   if (errors.length) throw new Error(errors.join('\n'));
