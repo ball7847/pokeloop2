@@ -25,9 +25,9 @@ assert.equal(count(/\brn\(/g), 0, 'All direct original resolver calls should be 
 assert.match(resolver, /pp=\(e,o,s,i,n,a,l,d,u,g,f,c=!1,x=!0,C=\{\},T=0,v=0\)=>/);
 assert.match(resolver, /pp as aa/);
 
-assert.match(resolver, /^import\{calculateDamageVariance\}from"\.\.\/src\/engine\/combat\/damageVariance\.mjs";/);
+assert.match(resolver, /import\{calculateDamageVariance\}from"\.\.\/src\/engine\/combat\/damageVariance\.mjs";/);
 assert.equal(resolver.split('calculateDamageVariance(O,oe)').length - 1, 1);
 
-assert.match(resolver, /^import\{applyArmorMitigation\}from"\.\.\/src\/engine\/combat\/armorMitigation\.mjs";/);
+assert.match(resolver, /import\{applyArmorMitigation\}from"\.\.\/src\/engine\/combat\/armorMitigation\.mjs";/);
 assert.equal(resolver.split('applyArmorMitigation(h,xt,r)').length - 1, 1);
 console.log('Combat integration boundaries verified');
