@@ -26,7 +26,7 @@ function currentKey(state) {
 }
 function available(state) {
   const ids = new Set(state.availableSketches || []);
-  return snapshot.filter(p => ids.has(p.templateId));
+  return (snapshot || []).filter(p => ids.has(p.templateId));
 }
 function loadOrRoll(state) {
   const nextKey = currentKey(state);
@@ -74,7 +74,10 @@ function label(p) {
 function renderBattle(state) {
   let card = document.getElementById(BATTLE_ID);
   const combat = state.combatState;
-  const fighting = Boolean(combat?.isFighting && selectedPokemon && combat.enemyId === selectedPokemon.templateId);
+  // Also resolve normal/automatic encounters, not only clicks in this panel.
+  const encountered = (snapshot || []).find(p => p.templateId === combat?.enemyId);
+  const species = selectedPokemon?.templateId === combat?.enemyId ? selectedPokemon : encountered;
+  const fighting = Boolean(combat?.isFighting && species);
   if (!fighting) {
     if (card) card.remove();
     return;
@@ -88,7 +91,7 @@ function renderBattle(state) {
     name.dataset.field = 'name';
     name.style.cssText = 'display:block;font-size:17px';
     const img = document.createElement('img');
-    img.alt = selectedPokemon.name;
+    img.alt = species.name;
     img.width = 112;
     img.height = 112;
     img.style.cssText = 'display:block;margin:auto;image-rendering:pixelated;object-fit:contain';
@@ -99,11 +102,11 @@ function renderBattle(state) {
     card.append(name, img, type, hp);
     document.body.append(card);
   }
-  card.querySelector('[data-field=name]').textContent = selectedPokemon.name;
-  card.querySelector('img').alt = selectedPokemon.name;
-  const sprite = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + selectedPokemon.dex + '.png';
+  card.querySelector('[data-field=name]').textContent = species.name;
+  card.querySelector('img').alt = species.name;
+  const sprite = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + species.dex + '.png';
   if (card.querySelector('img').getAttribute('src') !== sprite) card.querySelector('img').src = sprite;
-  card.querySelector('[data-field=types]').textContent = selectedPokemon.types.map(t => TYPE_LABELS[t] ?? t).join(' / ');
+  card.querySelector('[data-field=types]').textContent = species.types.map(t => TYPE_LABELS[t] ?? t).join(' / ');
   const hp = combat.currentEnemyHp;
   const textHp = hp && typeof hp.toString === 'function' ? hp.toString() : String(hp ?? '?');
   card.querySelector('[data-field=hp]').textContent = 'HP ' + textHp;
@@ -170,6 +173,8 @@ export function mountPokemonPanel(){
   let prevKey=currentKey(store.getState());
   let prevAvailable=(store.getState().availableSketches||[]).join('|');
   let prevCombat = store.getState().combatState;
+  let prevEnemyId = prevCombat?.enemyId;
+  let prevFighting = prevCombat?.isFighting;
   store.subscribe(state=>{
     const key=currentKey(state);
     const ids=(state.availableSketches||[]).join('|');
@@ -179,8 +184,10 @@ export function mountPokemonPanel(){
       prevAvailable=ids;
       render();
     }
-    if(state.combatState !== prevCombat){
+    if(state.combatState !== prevCombat || state.combatState?.enemyId !== prevEnemyId || state.combatState?.isFighting !== prevFighting){
       prevCombat = state.combatState;
+      prevEnemyId = prevCombat?.enemyId;
+      prevFighting = prevCombat?.isFighting;
       renderBattle(state);
     }
   });
