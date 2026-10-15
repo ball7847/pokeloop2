@@ -35,7 +35,8 @@ try {
     const prototype = sketchCatalog['stick man'];
     if (prototype?.name !== '이상해씨 · 풀/독' ||
         prototype.pokemon?.slug !== 'bulbasaur' ||
-        !prototype.stats?.maxHp || prototype.id !== 'stick man') {
+        !prototype.stats?.maxHp || prototype.id !== 'stick man' ||
+        prototype.pokemon?.moves?.length !== 4) {
       throw new Error('Prototype name/types not integrated into live sketch catalog');
     }
     // The real app's Zustand store is exposed by its existing compiled export
