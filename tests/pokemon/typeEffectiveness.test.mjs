@@ -15,7 +15,7 @@ test('dual-type effectiveness multiplies and uses agreed 0.25x immunity floor', 
   assert.equal(hit('fire',['grass','bug']), 4);
   assert.equal(hit('grass',['water','ground']), 4);
   assert.equal(hit('fire',['fire','water']), 0.25);
-  assert.equal(hit('electric',['water','ground' ]), 0.25);
+  assert.equal(hit('electric',['water','ground' ]), 0.5);
 });
 test('PokéLoop modified immunity policy', () => {
   assert.equal(hit('normal',['ghost' ]), 0.25);
