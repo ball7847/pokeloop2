@@ -29,3 +29,15 @@ test('training-dummy battle starts with clean temporary status state', () => {
   assert.match(training, /currentPlayerHp:r\.playerStats\.maxHp/);
   assert.match(training, /isInFlowState:!1/);
 });
+
+test('original battle must not import duplicated type multipliers', () => {
+  assert.doesNotMatch(game, /originalAutoAttackTypes|originalAutoAttackTypeMultiplier/);
+  assert.doesNotMatch(game, /prototypeMoves|previewMoveMatchup/);
+  assert.doesNotMatch(sketches, /originalAutoAttackTypes|originalAutoAttackTypeMultiplier/);
+});
+
+test('tier presentation uses core tiers instead of a second hardcoded chart', () => {
+  const layers = fs.readFileSync('src/pokemon/worldLayers.mjs', 'utf8');
+  assert.match(layers, /import \{ TIERS \} from '\.\.\/pokeloop\/core\.js'/);
+  assert.match(layers, /TIERS\.map\(/);
+});
