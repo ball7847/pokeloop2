@@ -16,7 +16,8 @@
    Slow, Haste, BananaSlip, Flow State, first-attack gating,
    and glossary-unlock gating.
 3. `enemyAttackTiming.mjs` now calculates the enemy attack interval using the original Slow/Haste/BananaSlip order. The combat tick on the development branch calls it directly.
-4. Pure-module tests in `tests/combat/` cover encounter boundaries and
+4. `inspirationMultiplier.mjs` is integrated into both player and enemy EnergyWave damage paths. It preserves the original Decimal arithmetic for the Inspiration stack multiplier only; the remaining damage pipeline has not been extracted.
+5. Pure-module tests in `tests/combat/` cover encounter boundaries and
    player attack timing; `.github/workflows/engine-tests.yml` is configured
    to run Node syntax checks and tests on supported events.
 
@@ -24,7 +25,7 @@
 
 - GitHub commits and content presence have been confirmed. An actual
   successful CI run or in-browser playtest has **not** yet been verified.
-- Three targeted pieces have been extracted. Damage calculation,
+- Four targeted pieces have been extracted. Full damage resolution,
   status application, rewards, save/load and remaining combat logic still live
   in the original compiled bundle.
 - Future changes should preserve the original encounter data shape and
