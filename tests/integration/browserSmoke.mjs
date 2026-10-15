@@ -15,7 +15,7 @@ try {
   await page.waitForFunction(() => {
     const root = document.querySelector('#root');
     return root && root.textContent?.trim().length > 30;
-  }, { timeout: 30000 });
+  }, null, { timeout: 30000 });
   // Import the same modules that the production bundle imports. This verifies
   // loading + parsing in a real browser, including relative paths.
   const paths = [
