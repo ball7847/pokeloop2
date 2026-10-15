@@ -486,3 +486,27 @@ browser green result, or save-load validation is claimed. Future
 implementation must use the authoritative core instead of guessing
 new formulas, and original automatic attacks must remain unchanged
 apart from the approved modifiers.
+
+## Phase 29 — original automatic-attack modifier boundary (inactive)
+
+Added `src/pokemon/originalAutoAttackTypes.mjs` and its tests.
+This adapter delegates to authoritative `src/pokeloop/core.js`, and
+uses **no four-move system**. It returns exactly 1× if the original
+enemy has no approved species mapping, or a single attacking type /
+Ditto assimilation state has not been explicitly resolved; it never
+invents an attack type. It offers a Decimal-compatible multiplier
+helper without changing original damage ordering.
+
+Fetched-source execution examples: unmapped = 1×, unspecified attack
+type = 1×, explicit Normal vs Ghost = 0.25×, explicit Fire vs
+Bug/Steel plus Fire assimilation 200% = 36× (4× effectiveness × 9×
+assimilation). These are deliberately standalone formula checks.
+
+**Not connected to the compiled live combat bundle yet.** The
+attacking type and canonical Pokémon enemy assignments have not
+been conclusively recovered/approved. Injecting a guessed damage
+multiplier into the production resolver would change balancing and
+potentially amplify counters/status damage, so the live battle remains
+original Rejected Draft until the appropriate base-hit insertion point
+is verified. End-to-end browser and save/load tests still lack confirmed
+success.
