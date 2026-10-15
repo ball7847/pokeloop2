@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { POKEMON_TYPES } from '../../src/pokemon/typeEffectiveness.mjs';
+import { TYPES } from '../../src/pokeloop/core.js';
 import { TYPE_LAYERS, SPACE_TRAVEL, layerOfType } from '../../src/pokemon/worldLayers.mjs';
 
 test('ten layers contain every Pokémon type exactly once', () => {
@@ -9,7 +9,7 @@ test('ten layers contain every Pokémon type exactly once', () => {
   const types = TYPE_LAYERS.flatMap(x => x.types);
   assert.equal(types.length, 18);
   assert.equal(new Set(types).size, 18);
-  assert.deepEqual(new Set(types), new Set(POKEMON_TYPES));
+  assert.deepEqual(new Set(types), new Set(TYPES));
 });
 test('agreed conceptual assignments are not reordered', () => {
   assert.equal(layerOfType('normal').name, '세계');
