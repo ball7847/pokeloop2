@@ -556,3 +556,25 @@ The new source references are consistent in the inspected files.
 This does not establish that GitHub Actions or browser integration
 passed; broad repository-wide references outside the inspected files
 are not yet excluded.
+
+## Phase 32 — executed isolated source tests and improved browser diagnostics
+
+Fetched the authoritative `src/pokeloop/core.js` / `pokemon.js` /
+`templates.js`, their corresponding test files, and the
+`worldLayers` module/test from this exact feature branch.
+
+Executed assertions in a JavaScript isolate after stripping ES module
+imports/exports and providing assertion shims:
+- `src/pokeloop/core.test.mjs`: passed.
+- `src/pokeloop/pokemon.test.mjs`: passed.
+- `tests/pokemon/worldLayers.test.mjs`: passed (three test blocks).
+
+This is a **partial source-level execution**, not an actual
+`node --test` run or a Playwright/Chromium playthrough. Container
+network access to GitHub is unavailable, so the full remote checkout
+and browser test could not be run in this environment. Neither a green
+push CI nor a successful browser run has been verified.
+
+Updated the CI workflow to print the static server log and publish both
+its server log and browser screenshot when the Chromium job fails.
+Existing branch push triggers remain intact.
