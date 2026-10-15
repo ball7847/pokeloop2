@@ -358,21 +358,26 @@ the entire combat resolver wrapper, because it also handles counters,
 reflections and unrelated status damage. Attach it at the individual
 typed-hit stage once that mechanic is specified and verified.
 
-## Phase 23 — prototype move slots wired as catalog metadata
+## Phase 23 correction — remove unauthorized moves (phase 24)
 
-Added `src/pokemon/prototypeMoves.mjs` with four **provisional,
-playtest-only** typed move slots for each of the ten unevolved Pokémon
-(40 total). The move definitions do not claim a legal four-move
-learnset for any particular game/generation. Some names normally
-describe status or fixed-damage moves; **they are labels only** until
-move power, effect and selection rules are designed.
+**Agreed design: no Pokémon move slots.** PokéLoop 2 reuses the original
+Rejected Draft automatic attack, speed, damage, critical, status, and
+counter systems. Pokémon's 18-type effectiveness and Ditto assimilation
+will be incorporated later into the original attack path according to
+the established design, *without* individual four-move assignments.
 
-`previewMoveMatchup` exposes the existing 18-type effectiveness
-and a boolean same-type eligibility flag. It does not set the final
-STAB multiplier, assimilation coefficient, or damage value.
+The previous Phase 23 addition was a design mistake and has been
+reverted from the development branch:
+- Deleted `src/pokemon/prototypeMoves.mjs`.
+- Deleted `tests/pokemon/prototypeMoves.test.mjs`.
+- Removed the move import and `pokemon.moves` metadata from the live
+  `assets/data-sketches-B3moo1Ps.js` catalog.
+- Updated the browser smoke assertion to reject move metadata.
 
-The existing catalog overlay in `assets/data-sketches-B3moo1Ps.js`
-now attaches four move descriptors as `pokemon.moves` to each mapped
-enemy entry. A Chromium catalog smoke assertion and Node unit tests
-verify metadata shape. **No attack selection or battle damage changes
-have been made.** Live browser success is not yet confirmed.
+The 18-type lookup and original combat resolver were left unchanged.
+The separately identified **temporary species-to-template allocation**
+and evolved-Pikachu issue are not fixed by this rollback and must not
+be treated as agreed final choices.
+
+All modifications remain on `feature/engine-extraction`. Successful
+full browser gameplay is still not confirmed.
