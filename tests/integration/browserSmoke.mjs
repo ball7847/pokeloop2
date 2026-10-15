@@ -65,6 +65,17 @@ try {
     // only checking that unrelated helper modules import.
     const liveGame = await import('./assets/game-store-DKXacG7P.js');
     assertLiveGame(liveGame);
+    const { selectAvailablePokemonEncounters } = await import('./src/pokeloop/runEncounters.js');
+    const availableNow = liveGame.u.getState().availableSketches;
+    if (!Array.isArray(availableNow)) {
+      throw new Error('Original store availableSketches is missing');
+    }
+    const eligiblePokemon = selectAvailablePokemonEncounters(trial, availableNow);
+    for (const encounter of Object.values(eligiblePokemon)) {
+      if (!availableNow.includes(encounter.pokemon.originalTemplateId)) {
+        throw new Error('Pokémon preview detached from real run availability');
+      }
+    }
     function assertLiveGame(mod) {
       if (!mod.u || typeof mod.u.getState !== 'function') {
         throw new Error('Original game store export unavailable');
