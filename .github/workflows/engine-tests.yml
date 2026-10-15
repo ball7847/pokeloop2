@@ -59,6 +59,19 @@ jobs:
           python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/pokeloop-http.log 2>&1 &
           SERVER_PID=$!
           trap 'kill $SERVER_PID || true' EXIT
+          READY=0
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:8765/ > /dev/null; then
+              READY=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$READY" -ne 1 ]; then
+            echo "Development web server did not become ready"
+            cat /tmp/pokeloop-http.log
+            exit 1
+          fi
           node tests/integration/browserSmoke.mjs
       - name: Print local server log if browser fails
         if: failure()
