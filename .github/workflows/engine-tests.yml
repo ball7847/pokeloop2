@@ -33,6 +33,7 @@ jobs:
           node tests/integration/combatBundle.test.mjs
           node tests/integration/moduleGraph.test.mjs
           node tests/integration/combatOrchestration.test.mjs
+          node --test tests/integration/designGuards.test.mjs
 
   browser-smoke:
     runs-on: ubuntu-latest
