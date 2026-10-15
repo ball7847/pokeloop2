@@ -5,6 +5,7 @@ const browser = await chromium.launch({ headless: true });
 const errors = [];
 const browserConsoleErrors = [];
 const page = await browser.newPage();
+let stage = 'browser startup';
 try {
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => {
@@ -15,6 +16,7 @@ try {
       errors.push(`HTTP ${response.status()}: ${response.url()}`);
     }
   });
+  stage = 'initial navigation';
   await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForFunction(() => {
     const root = document.querySelector('#root');
@@ -22,6 +24,7 @@ try {
   }, null, { timeout: 30000 });
 
   // Real DOM integration: the Pokémon panel must mount beside the app.
+  stage = 'Pokémon panel mount';
   await page.waitForSelector('#pokeloop-pokemon-panel button', {timeout:15000});
   await page.locator('#pokeloop-pokemon-panel button').first().click();
   const panelCheck=await page.evaluate(()=>{
@@ -32,6 +35,7 @@ try {
   if(!panelCheck) throw new Error('Pokémon encounter panel is not interactive');
 
   // Verify exported functionality inside Chromium, not just file presence.
+  stage = 'engine modules and live catalog';
   const moduleResults = await page.evaluate(async () => {
     const modules = await Promise.all([
       import('./src/engine/combat/createEncounterState.mjs'),
@@ -138,6 +142,7 @@ try {
 
   // Real store-action test in a disposable browser context. It exercises the
   // *actual* compiled challengeSketch action, not only createEncounterState.
+  stage = 'live challengeSketch';
   const actualBattle = await page.evaluate(async () => {
     const { u: store } = await import('./assets/game-store-DKXacG7P.js');
     const snapshot = store.getState();
@@ -206,6 +211,7 @@ try {
   // changes, verifying that one victory increments the species' counters.
   // Use a distinct browser context with disposable storage so this never
   // modifies an existing save.
+  stage = 'victory settlement';
   const settlement = await page.evaluate(async () => {
     const { u: store } = await import('./assets/game-store-DKXacG7P.js');
     const before = store.getState();
@@ -237,6 +243,7 @@ try {
   // enemy and remember the auto-challenge state for later restoration.
   // This asserts queue creation only; automatic transition still needs a
   // battle-end integration test.
+  stage = 'next encounter queue';
   const queued = await page.evaluate(async () => {
     const { u: store } = await import('./assets/game-store-DKXacG7P.js');
     const original = store.getState();
@@ -271,6 +278,7 @@ try {
 
   // Reload in the same disposable context to catch broken app startup after
   // initialization/storage access. This is NOT a full save round-trip test.
+  stage = 'reload and hydration';
   await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForFunction(() => {
     const root = document.querySelector('#root');
@@ -287,7 +295,7 @@ try {
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(`Chromium smoke passed: visible app root, ${moduleResults.modules} engine modules, ${moduleResults.checks} runtime checks`);
 } catch (error) {
-  console.error('Browser smoke failed:', error.message);
+  console.error('Browser smoke failed at stage:', stage, error.stack || error.message);
   if (browserConsoleErrors.length) {
     console.error('Browser console errors:', browserConsoleErrors.slice(0, 30).join('\n'));
   }
