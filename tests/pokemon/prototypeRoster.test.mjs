@@ -6,7 +6,7 @@ test('draft roster has no evolved Pikachu and unique IDs', () => {
   assert.equal(prototypePokemon.length, 9);
   assert.ok(!prototypePokemon.some(p => p.slug === 'pikachu'));
   assert.ok(!prototypePokemon.some(p => p.id === 25));
-  assert.equal(new Set(prototypePokemon.map(x => x.id)).size, 10);
+  assert.equal(new Set(prototypePokemon.map(x => x.id)).size, prototypePokemon.length);
   assert.equal(new Set(prototypePokemon.map(x => x.templateId)).size, 10);
   assert.ok(prototypePokemon.every(x => x.types.length >= 1 && x.types.length <= 2));
 });
