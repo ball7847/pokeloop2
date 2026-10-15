@@ -78,3 +78,24 @@ It now checks all module/test syntax and executes
 `tests/integration/combatBundle.test.mjs` to validate the five imports,
 expected call counts, and original resolver export.
 No green workflow run has yet been confirmed.
+
+## Primary-hit damage extraction (phase 8)
+
+Inspection located the actual hit computation in `Aa` inside the compiled
+`assets/data-skill-tree-DvCthzIY.js` module. The outer resolver `pp`
+iterates over multi-strikes and delegates the per-hit damage to `Aa`.
+
+The existing calculation contains these phases, in observed order:
+Inspiration buff -> min/max damage variance -> conditional Execute and
+Berserk multipliers -> critical strike or glancing blow -> dodge/parry/
+accuracy -> block -> Surrealism interactions -> armor/armor penetration
+-> absorb and further effects.
+
+**Integrated:** `src/engine/combat/damageVariance.mjs` replaces exactly
+one variance calculation in `Aa`. Decimal arithmetic, default 75%-125%
+variance, and random consumption only when bounds differ are preserved.
+The remainder of the damage pipeline remains compiled and unmodified.
+
+Next: test the actual compiled resolver and compare deterministic damage
+scenarios before extracting further stages or adding Pokémon effectiveness.
+No successful CI or browser-playtest result has been independently observed.
