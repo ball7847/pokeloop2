@@ -38,3 +38,15 @@ test('duplicate species encounter IDs are rejected',()=>{
   const p=eligible[0];
   assert.throws(()=>buildPokemonRunEncounters({catalog:{[p.templateId]:{id:p.templateId}},pokemon:[p,p],rng:()=>0}),/Duplicate/);
 });
+
+test('availableSketches selection preserves shared-template Pokemon IDs', async () => {
+ const { selectAvailablePokemonEncounters } = await import('../../src/pokeloop/runEncounters.js');
+ const original={id:'shared',stats:{maxHp:42}};
+ const run=buildPokemonRunEncounters({catalog:{shared:original},pokemon:[
+ {id:'dex-1',dex:1,name:'A',types:['grass'],rarity:'scrap',evolved:false,boss:false,templateId:'shared'},
+ {id:'dex-4',dex:4,name:'B',types:['fire'],rarity:'scrap',evolved:false,boss:false,templateId:'shared'},
+ ],rng:()=>0});
+ assert.deepEqual(Object.keys(selectAvailablePokemonEncounters(run,['shared'])).sort(),['dex-1','dex-4']);
+ assert.equal(Object.keys(selectAvailablePokemonEncounters(run,[])).length,0);
+ assert.equal(original.id,'shared');
+});
