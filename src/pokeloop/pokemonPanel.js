@@ -15,6 +15,9 @@ const lookup = new Map(POKEMON.map(p => [p.id,p]));
 let snapshot = null;
 let runKey = '';
 let expanded = false;
+let selectedPokemon = null;
+const BATTLE_ID = 'pokeloop-pokemon-battle';
+
 
 function currentKey(state) {
   const slot = state.currentSaveSlot ?? 'browser';
@@ -68,11 +71,50 @@ function loadOrRoll(state) {
 function label(p) {
   return p.name + ' · ' + p.types.map(t => TYPE_LABELS[t] ?? t).join('/');
 }
+function renderBattle(state) {
+  let card = document.getElementById(BATTLE_ID);
+  const combat = state.combatState;
+  const fighting = Boolean(combat?.isFighting && selectedPokemon && combat.enemyId === selectedPokemon.templateId);
+  if (!fighting) {
+    if (card) card.remove();
+    return;
+  }
+  if (!card) {
+    card = document.createElement('aside');
+    card.id = BATTLE_ID;
+    card.setAttribute('aria-label', '현재 포켓몬 전투');
+    card.style.cssText = 'position:fixed;top:12px;right:12px;z-index:2147483646;min-width:160px;max-width:42vw;text-align:center;padding:10px;background:#f5f0e5;color:#222;border:2px solid #555;border-radius:8px;box-shadow:0 2px 12px #0008;font:14px sans-serif;pointer-events:none';
+    const name = document.createElement('strong');
+    name.dataset.field = 'name';
+    name.style.cssText = 'display:block;font-size:17px';
+    const img = document.createElement('img');
+    img.alt = selectedPokemon.name;
+    img.width = 112;
+    img.height = 112;
+    img.style.cssText = 'display:block;margin:auto;image-rendering:pixelated;object-fit:contain';
+    const type = document.createElement('div');
+    type.dataset.field = 'types';
+    const hp = document.createElement('div');
+    hp.dataset.field = 'hp';
+    card.append(name, img, type, hp);
+    document.body.append(card);
+  }
+  card.querySelector('[data-field=name]').textContent = selectedPokemon.name;
+  card.querySelector('img').alt = selectedPokemon.name;
+  const sprite = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + selectedPokemon.dex + '.png';
+  if (card.querySelector('img').getAttribute('src') !== sprite) card.querySelector('img').src = sprite;
+  card.querySelector('[data-field=types]').textContent = selectedPokemon.types.map(t => TYPE_LABELS[t] ?? t).join(' / ');
+  const hp = combat.currentEnemyHp;
+  const textHp = hp && typeof hp.toString === 'function' ? hp.toString() : String(hp ?? '?');
+  card.querySelector('[data-field=hp]').textContent = 'HP ' + textHp;
+}
+
 function render() {
   const root = document.getElementById(ROOT_ID);
   if (!root) return;
   const state = store.getState();
   loadOrRoll(state);
+  renderBattle(state);
   root.replaceChildren();
   const button = document.createElement('button');
   button.type = 'button';
@@ -104,6 +146,7 @@ function render() {
       const now=store.getState();
       if (!now.availableSketches?.includes(p.templateId)) return;
       if (!originalCatalog[p.templateId]) return;
+      selectedPokemon = p;
       now.challengeSketch(p.templateId);
       render();
     });
@@ -126,13 +169,19 @@ export function mountPokemonPanel(){
   subscribed=true;
   let prevKey=currentKey(store.getState());
   let prevAvailable=(store.getState().availableSketches||[]).join('|');
+  let prevCombat = store.getState().combatState;
   store.subscribe(state=>{
     const key=currentKey(state);
     const ids=(state.availableSketches||[]).join('|');
     if(key!==prevKey || ids!==prevAvailable){
       prevKey=key;
       prevAvailable=ids;
+      selectedPokemon = key !== prevKey ? null : selectedPokemon;
       render();
+    }
+    if(state.combatState !== prevCombat){
+      prevCombat = state.combatState;
+      renderBattle(state);
     }
   });
 }
