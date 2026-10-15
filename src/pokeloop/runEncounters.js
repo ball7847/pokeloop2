@@ -42,3 +42,30 @@ export function buildPokemonRunEncounters({
 export function getPokemonRunEncounter(runEncounters, dexId) {
   return Object.hasOwn(runEncounters, dexId) ? runEncounters[dexId] : null;
 }
+
+/**
+ * Non-destructive bridge to the ACTUAL availableSketches array in Zustand.
+ * Accepts a previously rolled run snapshot. This deliberately does not call
+ * rollRunRoster again, because changing panels or entering battle must not
+ * change a Pokémon's Redraw selection.
+ *
+ * Several distinct Pokémon may reference one available original template.
+ * Do not assign 'dex-*' directly to availableSketches until the combat
+ * catalog and all reward/stat lookups support dex IDs.
+ */
+export function selectAvailablePokemonEncounters(runEncounters, availableSketches) {
+  if (!runEncounters || typeof runEncounters !== 'object') {
+    throw new TypeError('A rolled Pokémon encounter snapshot is required');
+  }
+  if (!Array.isArray(availableSketches)) {
+    throw new TypeError('availableSketches must be an array');
+  }
+  const available = new Set(availableSketches);
+  const selected = Object.create(null);
+  for (const [pokemonId, encounter] of Object.entries(runEncounters)) {
+    if (available.has(encounter.pokemon.originalTemplateId)) {
+      selected[pokemonId] = encounter;
+    }
+  }
+  return Object.freeze(selected);
+}
