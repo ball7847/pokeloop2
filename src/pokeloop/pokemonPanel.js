@@ -76,9 +76,9 @@ function renderBattle(state) {
   const combat = state.combatState;
   // Also resolve normal/automatic encounters, not only clicks in this panel.
   const encountered = (snapshot || []).find(p => p.templateId === combat?.enemyId);
-  const species = selectedPokemon?.templateId === combat?.enemyId ? selectedPokemon : encountered;
-  const fighting = Boolean(combat?.isFighting && species);
-  if (!fighting) {
+  const species = selectedPokemon || encountered;
+  const fighting = Boolean(combat?.isFighting && species && combat.enemyId === species.templateId);
+  if (!species) {
     if (card) card.remove();
     return;
   }
@@ -107,9 +107,9 @@ function renderBattle(state) {
   const sprite = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + species.dex + '.png';
   if (card.querySelector('img').getAttribute('src') !== sprite) card.querySelector('img').src = sprite;
   card.querySelector('[data-field=types]').textContent = species.types.map(t => TYPE_LABELS[t] ?? t).join(' / ');
-  const hp = combat.currentEnemyHp;
+  const hp = fighting ? combat.currentEnemyHp : null;
   const textHp = hp && typeof hp.toString === 'function' ? hp.toString() : String(hp ?? '?');
-  card.querySelector('[data-field=hp]').textContent = 'HP ' + textHp;
+  card.querySelector('[data-field=hp]').textContent = fighting ? '전투 중 · HP ' + textHp : '선택됨 · 전투 대기';
 }
 
 function render() {
