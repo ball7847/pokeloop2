@@ -23,11 +23,11 @@ jobs:
           node-version: '22'
       - name: Check JavaScript syntax
         run: |
-          for file in src/engine/combat/*.mjs tests/combat/*.mjs tests/integration/*.mjs assets/game-store-DKXacG7P.js assets/data-skill-tree-DvCthzIY.js; do
+          for file in src/engine/combat/*.mjs src/pokemon/*.mjs tests/combat/*.mjs tests/pokemon/*.mjs tests/integration/*.mjs assets/game-store-DKXacG7P.js assets/data-skill-tree-DvCthzIY.js; do
             node --check "$file"
           done
       - name: Run all isolated combat tests
-        run: node --test tests/combat/*.test.mjs
+        run: node --test tests/combat/*.test.mjs tests/pokemon/*.test.mjs
       - name: Check combat integration call sites
         run: |
           node tests/integration/combatBundle.test.mjs
