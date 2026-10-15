@@ -487,26 +487,22 @@ implementation must use the authoritative core instead of guessing
 new formulas, and original automatic attacks must remain unchanged
 apart from the approved modifiers.
 
-## Phase 29 — original automatic-attack modifier boundary (inactive)
+## Phase 29 correction — redundant type multiplier removed
 
-Added `src/pokemon/originalAutoAttackTypes.mjs` and its tests.
-This adapter delegates to authoritative `src/pokeloop/core.js`, and
-uses **no four-move system**. It returns exactly 1× if the original
-enemy has no approved species mapping, or a single attacking type /
-Ditto assimilation state has not been explicitly resolved; it never
-invents an attack type. It offers a Decimal-compatible multiplier
-helper without changing original damage ordering.
+Previous phase 29 attempted to compute `baseEffectiveness × assimilationMultiplier`
+as separate extra multipliers on an original attack. This was not aligned
+with the user's agreed rule that **type interaction belongs to the
+assimilation system**. The module `src/pokemon/originalAutoAttackTypes.mjs`
+and its related test have now both been deleted.
 
-Fetched-source execution examples: unmapped = 1×, unspecified attack
-type = 1×, explicit Normal vs Ghost = 0.25×, explicit Fire vs
-Bug/Steel plus Fire assimilation 200% = 36× (4× effectiveness × 9×
-assimilation). These are deliberately standalone formula checks.
+No Pokémon modifier has been attached to the live combat damage resolver.
+Existing automatic attacks remain unchanged. Before any integration,
+the agreed relationship between attack type and assimilation must be
+recovered from the earlier design rather than inferred. In particular,
+the old separate-function multiplication is **not authorized** for live
+combat.
 
-**Not connected to the compiled live combat bundle yet.** The
-attacking type and canonical Pokémon enemy assignments have not
-been conclusively recovered/approved. Injecting a guessed damage
-multiplier into the production resolver would change balancing and
-potentially amplify counters/status damage, so the live battle remains
-original Rejected Draft until the appropriate base-hit insertion point
-is verified. End-to-end browser and save/load tests still lack confirmed
-success.
+The old `src/pokeloop/core.js` primitives remain untouched, but
+their coexistence must not be interpreted as approval to multiply
+them when implementing combat. Full browser and save tests remain
+unverified.
