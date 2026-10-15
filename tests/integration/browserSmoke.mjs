@@ -190,7 +190,7 @@ try {
     const { u: store } = await import('./assets/game-store-DKXacG7P.js');
     const original = store.getState();
     const first = 'stick man';
-    const next = 'training_dummy_1';
+    const next = 'fountain_pen_duelist';
     try {
       store.setState({
         combatState: { ...original.combatState, isFighting: true, enemyId: first },
