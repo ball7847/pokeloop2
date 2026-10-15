@@ -255,3 +255,18 @@ which will need baseline comparisons.
 The new test has been committed but has **not** been observed passing in
 a running Chromium job. The automated next-target selection and complete
 victory/death transition remain unverified; no live-branch merger is justified.
+
+## Phase 18 — next-target queue integration test
+
+Added a browser action test that seeds an active fight against
+`stick man`, temporarily enables queue functionality, then calls the
+real `queueNextChallenge('fountain_pen_duelist')` action. It checks:
+- the queued sketch ID and `mode === 'next'`;
+- preservation of `restoreAutoChallenge === true`;
+- pausing `autoChallengeActive` during the switch.
+
+The test restores the previously captured store state afterward.
+This covers **queue creation**, not actual enemy death, queue consumption,
+automatic encounter start, reward settlement timing or save persistence.
+As with prior browser tests, no green CI run has yet been independently
+observed in this environment.
