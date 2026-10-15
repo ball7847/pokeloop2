@@ -7,6 +7,8 @@ on:
   pull_request:
     paths:
       - 'src/engine/**'
+      - 'src/pokemon/**'
+      - 'assets/data-sketches-B3moo1Ps.js'
       - 'tests/**'
       - 'assets/game-store-DKXacG7P.js'
       - 'assets/data-skill-tree-DvCthzIY.js'
