@@ -23,7 +23,7 @@ jobs:
           node-version: '22'
       - name: Check JavaScript syntax
         run: |
-          for file in src/engine/combat/*.mjs src/pokemon/*.mjs tests/combat/*.mjs tests/pokemon/*.mjs tests/integration/*.mjs assets/game-store-DKXacG7P.js assets/data-skill-tree-DvCthzIY.js; do
+          for file in src/engine/combat/*.mjs src/pokemon/*.mjs tests/combat/*.mjs tests/pokemon/*.mjs tests/integration/*.mjs assets/game-store-DKXacG7P.js assets/data-skill-tree-DvCthzIY.js assets/data-sketches-B3moo1Ps.js; do
             node --check "$file"
           done
       - name: Run all isolated combat tests
