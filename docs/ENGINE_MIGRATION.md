@@ -453,3 +453,36 @@ Still outstanding: verifying actual runtime + saves, selecting approved
 species and type assignments, integrating original auto-hit effectiveness
 with the previously agreed Ditto assimilation formula, and implementing
 actual space-travel economy. No unapproved balance changes made.
+
+## Phase 28 — fix a confirmed contradiction with original agreed type rules
+
+The previously written `src/pokemon/typeEffectiveness.mjs` was
+WRONG for PokéLoop 2: it treated original type immunities as zero.
+The user's earlier confirmed design and the pre-existing authoritative
+`src/pokeloop/core.js` instead use **0.25× for a type immunity**, with
+dual-type multipliers multiplied. For example electric vs Water/Ground
+is 2 × 0.25 = 0.5, NOT zero.
+
+Fixed this by making the newer type module a small validated adapter
+to `baseEffectiveness` in the **already existing**
+`src/pokeloop/core.js`, not by maintaining two independent charts.
+Updated its Pokémon test expectations. Evaluated the fetched source
+in JavaScript and compared all **5,832** ordered single/dual matchup
+inputs against the authoritative core; **zero mismatches**. Also
+validated the existing agreed Fire 200% assimilation example (9×).
+
+Further important discovery: `src/pokeloop/core.js`,
+`src/pokeloop/pokemon.js`, and their tests ALREADY existed on the
+development branch and contain previously agreed type assimilation,
+Redraw encounter-based gains, generation and evolution exclusion.
+Previously added `src/pokemon/*` files must not supersede them.
+The engine test workflow now also executes
+`node src/pokeloop/core.test.mjs` and
+`node src/pokeloop/pokemon.test.mjs`, and PR paths include
+`src/pokeloop/**`.
+
+This checks standalone math only: no live typed-hit integration,
+browser green result, or save-load validation is claimed. Future
+implementation must use the authoritative core instead of guessing
+new formulas, and original automatic attacks must remain unchanged
+apart from the approved modifiers.
