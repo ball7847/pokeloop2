@@ -49,3 +49,32 @@
 
 ## Damage-path limitation
 The complete original damage resolver (`rn` alias) remains bundled in `data-skill-tree-DvCthzIY.js`. The adapter is an integration seam, **not** an extracted damage formula. Do not add Pokémon type effectiveness until ordinary hits, reflected hits, counters, and every damage type are mapped and regression-tested.
+
+## Damage resolver audit (phase 7)
+
+The bundled source `assets/data-skill-tree-DvCthzIY.js` exports its
+attack resolver as `pp as aa`, imported by game-store as `rn`.
+Its signature is:
+
+`pp(attackerStats, defenderStats, defenderHp, defenderMaxHp, attackerHp, attackerMaxHp, attackAmount, events, target, attackerStatuses, defenderStatuses, counter=false, emitEvents=true, context={}, flags=0, extra=0)`
+
+**Source inspection confirms that this resolver combines** miss and
+status conditions (including Paralysis and Hinder), attack redirection
+(Hypnotize), multi-strikes, damage outcomes, counterattacks, status
+application, reflections (Thorns), and lifesteal. Consequently adding
+type-effectiveness at the outer `resolveCombatHit` boundary without
+specifying which attack variants it applies to would be unsafe.
+
+We are **not** assigning one universal multiplier to all outgoing
+damage. Planned next: locate the primary-hit damage calculation inside
+the resolver, isolate its multiplier placement, then compare ordinary,
+counter, reflected, and status damage paths.
+
+## CI improvement (phase 7)
+
+The earlier workflow checked that the encounter initializer import was the
+very first import, which stopped being true when later modules were added.
+It now checks all module/test syntax and executes
+`tests/integration/combatBundle.test.mjs` to validate the five imports,
+expected call counts, and original resolver export.
+No green workflow run has yet been confirmed.
