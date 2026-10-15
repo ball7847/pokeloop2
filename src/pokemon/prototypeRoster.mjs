@@ -1,14 +1,15 @@
 /**
  * PokéLoop 2 first vertical-slice roster.
  *
- * TEMPORARY 1:1 encounter-template mapping for the first 10 Pokémon.
+ * UNAPPROVED, OFFLINE ONLY 1:1 encounter-template mapping for the candidate Pokémon.
  * Template IDs refer to the original Rejected Draft catalog. Combat stats,
  * rewards and appearance weights remain owned by the ORIGINAL template;
  * do not silently replace them with Pokémon base stats.
  *
  * Names/types are canonical; the particular template pairing is a playtest
  * placeholder, not the final user-approved 1:N allocation.
- * Evolved forms are intentionally excluded.
+ * Evolved forms are intentionally excluded; Pikachu was removed because it evolves from Pichu.
+ * Do not wire this draft directly to the live game catalog until allocations are approved.
  */
 export const prototypePokemon = Object.freeze([
   { id: 1, slug: 'bulbasaur', nameKo: '이상해씨', types: ['grass', 'poison'], templateId: 'stick man' },
@@ -16,7 +17,6 @@ export const prototypePokemon = Object.freeze([
   { id: 7, slug: 'squirtle', nameKo: '꼬부기', types: ['water'], templateId: 'sub_xero' },
   { id: 10, slug: 'caterpie', nameKo: '캐터피', types: ['bug'], templateId: 'smudge' },
   { id: 16, slug: 'pidgey', nameKo: '구구', types: ['normal', 'flying'], templateId: 'clockwork_heart' },
-  { id: 25, slug: 'pikachu', nameKo: '피카츄', types: ['electric'], templateId: 'perspective_block' },
   { id: 63, slug: 'abra', nameKo: '캐이시', types: ['psychic'], templateId: 'wash_ink_ton' },
   { id: 66, slug: 'machop', nameKo: '알통몬', types: ['fighting'], templateId: 'dumb_door' },
   { id: 74, slug: 'geodude', nameKo: '꼬마돌', types: ['rock', 'ground'], templateId: 'v-wing_bat' },
