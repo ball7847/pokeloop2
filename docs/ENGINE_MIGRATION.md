@@ -381,3 +381,28 @@ be treated as agreed final choices.
 
 All modifications remain on `feature/engine-extraction`. Successful
 full browser gameplay is still not confirmed.
+
+## Phase 25 — correct prototype violations and disable unauthorized live roster
+
+The original game catalog is restored: the prototype overlay import and
+the code that overwrote source sketch names and appended Pokémon metadata
+have been removed from `assets/data-sketches-B3moo1Ps.js`.
+Until species/template assignments are confirmed, **the live game keeps
+original enemy names, images, spawn rules, statistics and rewards**.
+
+The draft prototype roster remains as offline data but now has nine
+candidates, not ten: Pikachu (evolved from Pichu) was deleted. No new
+replacement was invented. The nine remaining species/template pairs
+are **unapproved placeholders**, not authoritative allocation decisions;
+they are not loaded by the live catalog. Roster tests were updated to
+ensure Pikachu is excluded. Browser smoke assertions now require that
+the baseline Stick Man entry is unchanged.
+
+**Remaining unresolved:** selecting the final Pokémon candidates based
+on agreed original enemy difficulty tiers and the original allocation
+workbook; how types are assigned to original automatic attacks (there
+are no four-move slots); Ditto assimilation; evolution probability (later);
+all CI/browser regression and save/load verification.
+
+This section supersedes earlier Phase 20/21 language claiming live
+Pokémon labels, and the previous prototype test expectation of ten.
