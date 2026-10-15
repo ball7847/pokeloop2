@@ -180,3 +180,18 @@ smoke job is needed before concluding the branch renders.
 This is a rendering/import smoke test, not a full combat simulation.
 Combat actions, status reset, rewards and save/load require separately
 verified interactive tests.
+
+## Phase 13 — stronger Chromium regression smoke
+
+The browser smoke script now imports eight extracted combat modules in Chromium
+and performs 12 runtime assertions, covering chained HP carryover, fresh
+statuses, previous-combat immutability, Flow State, player/enemy attack
+intervals, Inspiration, damage variance, armor, Absorb and original damage
+delegation. This supplements the earlier check that the app root renders.
+
+The workflow also uploads a screenshot artifact if the Chromium smoke fails.
+
+**Still unverified:** A green Actions run and the full interactive combat
+flow (start/kill/auto-next/rematch/save/refresh). The browser test executes
+representative module logic, not scripted game battles. Do not merge the
+branch or claim that the full game works solely on this smoke-test setup.
