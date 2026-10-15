@@ -38,7 +38,20 @@ function loadOrRoll(state) {
       return;
     }
   }
-  snapshot = rollRunRoster({chances: state.rarityChances});
+  // Original Rejected Draft may represent rarity settings as Decimal values
+  // or omit keys on migrated saves. Normalize rather than crashing the UI.
+  const chanceInput = state.rarityChances || {};
+  const rarityNames = ['scrap', 'rough', 'framed', 'opus', 'masterpiece'];
+  const chances = {};
+  for (const rarity of rarityNames) {
+    const value = chanceInput[rarity];
+    const number = typeof value === 'number' ? value
+      : value && typeof value.toNumber === 'function' ? value.toNumber()
+      : value == null ? 0 : Number(value);
+    chances[rarity] = Number.isFinite(number)
+      ? Math.min(100, Math.max(0, number)) : 0;
+  }
+  snapshot = rollRunRoster({ chances });
   try {
     localStorage.setItem(STORAGE,JSON.stringify({key:nextKey,ids:snapshot.map(p=>p.id)}));
   } catch {}
