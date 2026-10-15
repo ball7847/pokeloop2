@@ -3,9 +3,13 @@ import { chromium } from 'playwright';
 const base = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:8765/';
 const browser = await chromium.launch({ headless: true });
 const errors = [];
+const browserConsoleErrors = [];
 const page = await browser.newPage();
 try {
   page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => {
+    if (message.type() === 'error') browserConsoleErrors.push(message.text());
+  });
   page.on('response', response => {
     if (response.status() >= 400 && new URL(response.url()).origin === new URL(base).origin) {
       errors.push(`HTTP ${response.status()}: ${response.url()}`);
@@ -36,7 +40,7 @@ try {
     if (prototype?.name !== 'Stick Man' ||
         !prototype.stats?.maxHp || prototype.id !== 'stick man' ||
         Object.hasOwn(prototype, 'pokemon')) {
-      throw new Error('Prototype name/types not integrated into live sketch catalog');
+      throw new Error('Original sketch catalog has unexpected mutations');
     }
     // The real app's Zustand store is exposed by its existing compiled export
     // ('u' in this build). Assert that the live game initialized instead of
@@ -230,6 +234,12 @@ try {
   console.log(`Chromium smoke passed: visible app root, ${moduleResults.modules} engine modules, ${moduleResults.checks} runtime checks`);
 } catch (error) {
   console.error('Browser smoke failed:', error.message);
+  if (browserConsoleErrors.length) {
+    console.error('Browser console errors:', browserConsoleErrors.slice(0, 30).join('\n'));
+  }
+  if (errors.length) {
+    console.error('Browser page/network errors:', errors.slice(0, 30).join('\n'));
+  }
   try {
     await page.screenshot({ path: '/tmp/pokeloop-browser-failure.png', fullPage: true });
   } catch (captureError) {
