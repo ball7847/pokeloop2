@@ -30,6 +30,20 @@ try {
       import('./src/engine/combat/resolveCombatHit.mjs'),
     ]);
     const [enc, player, enemy, inspiration, variance, armor, absorb, hit] = modules;
+    // The real app's Zustand store is exposed by its existing compiled export
+    // ('u' in this build). Assert that the live game initialized instead of
+    // only checking that unrelated helper modules import.
+    const liveGame = await import('./assets/game-store-DKXacG7P.js');
+    assertLiveGame(liveGame);
+    function assertLiveGame(mod) {
+      if (!mod.u || typeof mod.u.getState !== 'function') {
+        throw new Error('Original game store export unavailable');
+      }
+      const state = mod.u.getState();
+      if (!state || typeof state.challengeSketch !== 'function' || !state.combatState) {
+        throw new Error('Original combat actions/state did not initialize');
+      }
+    }
     const old = {
       currentPlayerHp: 42,
       statuses: { player: { Haste: 999, Inspiration: 100 }, enemy: { Slow: 55 } },
@@ -68,7 +82,7 @@ try {
     assert(absorb.applyAbsorbMitigation(D(80), D(25), DecimalStub).remaining.value === 60, 'Absorb');
     const marker = { hp: '1e100000' };
     assert(hit.resolveCombatHit(x => x, marker) === marker, 'Damage call-through');
-    return { checks: 12, modules: modules.length };
+    return { checks: 13, modules: modules.length };
   });
 
   if (errors.length) throw new Error(errors.join('\n'));
