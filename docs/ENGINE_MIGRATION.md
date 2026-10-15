@@ -142,3 +142,24 @@ attack paths remain unverified.
 
 **Next gate:** run CI successfully and smoke-test encounter flow in a
 real browser before expanding into Pokémon mechanics.
+
+## Phase 11 — regression validation gate
+
+- Isolated module functions were fetched from GitHub and executed in a
+  JavaScript tool sandbox with eight representative cases:
+  encounter HP/stacks, player/enemy attack timing, Inspiration,
+  variance, armor, Absorb and original damage call-through.
+  All eight representative checks passed. **This is not equivalent
+  to running the repository's full Node test suite.**
+- Added `tests/integration/moduleGraph.test.mjs`: traverses relative JS
+  imports from the original HTML entrypoint, checking file existence.
+- Updated GitHub Actions to check the syntax of all extracted engine/test
+  modules plus both major compiled bundles; all unit tests and both
+  integration scripts are now included.
+
+Remaining release blockers:
+1. Confirm a green GitHub Actions run (no run returned by the available
+   commit workflow lookup at the time of writing).
+2. Browser test an actually deployed development branch, not `main`.
+3. Compare battle outcome, HP carryover and auto-battle after refresh.
+4. Only then begin the ten-Pokémon vertical slice.
