@@ -525,3 +525,34 @@ formula has *not* yet been recovered in sufficient detail to safely
 connect a multiplier to the original damage resolver. Do not treat
 older phase 29 multiplication as the accepted rule. Browser/CI
 success is still not confirmed; do not report game play as tested.
+
+## Phase 31 — deduplicate dormant Pokémon modules
+
+Reviewed the development branch's known runtime entrypoints, engine
+tests, world-layer helpers, and the pre-existing PokéLoop modules.
+The source of truth for the PokéLoop type chart, assimilation rules,
+18 types, 10 tiers, and 29-species provisional roster continues to be
+`src/pokeloop/core.js` / `src/pokeloop/pokemon.js`.
+
+Removed dormant competing modules and their dedicated tests:
+- `src/pokemon/prototypeRoster.mjs` (nine arbitrarily paired enemies;
+  superseded by the existing 29-species encounter-roll model).
+- `src/pokemon/typeEffectiveness.mjs` (redundant adapter around
+  `src/pokeloop/core.js`).
+- the two corresponding `tests/pokemon/*` tests.
+
+Fixed `tests/pokemon/worldLayers.test.mjs` to import `TYPES`
+directly from `core.js` instead of the deleted duplicate wrapper.
+`worldLayers.mjs` remains a **read-only display adapter** derived
+from the authoritative `TIERS`; it is not an independent ruleset.
+
+No compiled original combat, encounter catalog, reward, or save file
+was modified in this cleanup. The earlier type-immunity rule and
+no-four-moves policy are unchanged.
+
+**Verification boundary:** fetched the workflow and relevant runtime/test
+sources and checked them for remaining imports of deleted modules.
+The new source references are consistent in the inspected files.
+This does not establish that GitHub Actions or browser integration
+passed; broad repository-wide references outside the inspected files
+are not yet excluded.
