@@ -151,6 +151,37 @@ try {
   });
   console.log('Live battle startup verified:', JSON.stringify(actualBattle));
 
+  // Settlement boundary: invoke the real reward action with zero stat/currency
+  // changes, verifying that one victory increments the species' counters.
+  // Use a distinct browser context with disposable storage so this never
+  // modifies an existing save.
+  const settlement = await page.evaluate(async () => {
+    const { u: store } = await import('./assets/game-store-DKXacG7P.js');
+    const before = store.getState();
+    const enemyId = 'stick man';
+    const oldWins = before.sketchVictories[enemyId] || 0;
+    try {
+      store.setState({
+        sketchVictories: { ...before.sketchVictories, [enemyId]: 0 },
+        sketchRunVictories: { ...before.sketchRunVictories, [enemyId]: 0 },
+        fundamentals: { ...before.fundamentals, maxVictories: Math.max(2, before.fundamentals.maxVictories || 0) },
+      });
+      const previous = store.getState().totalVictories;
+      store.getState().processCombatRewards(enemyId, 1, {}, {}, 0, 'combat');
+      const after = store.getState();
+      if (after.sketchVictories[enemyId] !== 1) throw new Error('Victory count not increased');
+      if ((after.sketchRunVictories[enemyId] || 0) !== 1) throw new Error('Run victory count not increased');
+      if (after.totalVictories !== previous + 1) throw new Error('Total victory count not increased');
+      if (after.combatState.lastVictory?.enemyId !== enemyId) {
+        throw new Error('Victory timestamp/enemy not stored');
+      }
+      return { testWinsBefore: oldWins, testWinsAfter: after.sketchVictories[enemyId] };
+    } finally {
+      store.setState(before, true);
+    }
+  });
+  console.log('Live victory settlement verified:', JSON.stringify(settlement));
+
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(`Chromium smoke passed: visible app root, ${moduleResults.modules} engine modules, ${moduleResults.checks} runtime checks`);
 } catch (error) {
