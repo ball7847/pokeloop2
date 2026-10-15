@@ -506,3 +506,22 @@ The old `src/pokeloop/core.js` primitives remain untouched, but
 their coexistence must not be interpreted as approval to multiply
 them when implementing combat. Full browser and save tests remain
 unverified.
+
+## Phase 30 — eliminate duplicate tier definitions and guard the agreed combat boundary
+
+`src/pokemon/worldLayers.mjs` no longer duplicates the 10 world tier
+definitions. Its display metadata now derives directly from the
+pre-existing authoritative `src/pokeloop/core.js` `TIERS` constant.
+An independent execution of both retrieved sources confirmed 10 tiers,
+18 nonrepeating types, and full name/type equality.
+
+`tests/integration/designGuards.test.mjs` now explicitly rejects
+previously removed extra original-auto-attack multiplier integrations
+and verifies that world tiers are core-derived. Original compiled
+combat, rewards and saves were not changed.
+
+**Correction:** the approved type-interaction/assimilation combat
+formula has *not* yet been recovered in sufficient detail to safely
+connect a multiplier to the original damage resolver. Do not treat
+older phase 29 multiplication as the accepted rule. Browser/CI
+success is still not confirmed; do not report game play as tested.
