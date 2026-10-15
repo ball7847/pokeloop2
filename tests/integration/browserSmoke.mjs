@@ -34,8 +34,26 @@ try {
       import('./src/engine/combat/resolveCombatHit.mjs'),
     ]);
     const [enc, player, enemy, inspiration, variance, armor, absorb, hit] = modules;
+    // Pokémon run data is tested against real compiled templates without
+    // changing the original live gallery while allocations are provisional.
+    const { buildPokemonRunEncounters } = await import('./src/pokeloop/runEncounters.js');
+    const { POKEMON } = await import('./src/pokeloop/pokemon.js');
     // The gallery and battle views consume the same catalog objects.
     const { a: sketchCatalog } = await import('./assets/data-sketches-B3moo1Ps.js');
+    const trial = buildPokemonRunEncounters({
+      catalog: sketchCatalog,
+      pokemon: POKEMON,
+      rng: () => 0,
+      chances: { scrap:100, rough:100, framed:100, opus:100, masterpiece:100 },
+    });
+    if (!Object.keys(trial).length) throw new Error('No Pokémon prototypes selected');
+    for (const pokemonEncounter of Object.values(trial)) {
+      const original = sketchCatalog[pokemonEncounter.pokemon.originalTemplateId];
+      if (!original || pokemonEncounter.stats !== original.stats ||
+          pokemonEncounter.id === original.id || 'pokemon' in original) {
+        throw new Error('Pokémon prototype changed original combat templates');
+      }
+    }
     const prototype = sketchCatalog['stick man'];
     if (prototype?.name !== 'Stick Man' ||
         !prototype.stats?.maxHp || prototype.id !== 'stick man' ||
