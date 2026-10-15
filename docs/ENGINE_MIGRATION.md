@@ -270,3 +270,28 @@ This covers **queue creation**, not actual enemy death, queue consumption,
 automatic encounter start, reward settlement timing or save persistence.
 As with prior browser tests, no green CI run has yet been independently
 observed in this environment.
+
+## Phase 19 — locate actual automatic victory transition
+
+The real frame-based battle coordinator is in
+`assets/main-DksMQC7H.js`, **not** just the `game-store` module.
+It performs the frame tick, handles victories via
+`processCombatRewards`, respects a queued target before ordinary
+auto-retry, and starts queued encounters through
+`challengeSketch(d.sketchId)`.
+
+Key semantic distinction observed:
+- **Automatic retry of the same enemy** uses `b(y.id,!0)` (chained flag
+  true), which allows remaining HP carryover while encounter statuses
+  reset.
+- **Switching to an explicitly queued next enemy** uses
+  `challengeSketch(d.sketchId)` without the chained flag, meaning
+  the ordinary full-HP encounter policy is used. This is inherited
+  behavior and has **not** been changed.
+
+A static integration assertion suite at
+`tests/integration/combatOrchestration.test.mjs` now tracks both
+paths and is wired into GitHub Actions. It is not an executed
+end-to-end victory simulation. The Chromium job still needs a
+confirmed passing run, and reward calculations / auto battle outcomes
+need hands-on regression.
