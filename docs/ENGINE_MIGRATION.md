@@ -603,3 +603,23 @@ roster/template allocation remains provisional and must not be
 presented as approved or as a working playable Pokédex.
 The browser smoke test was changed but has not been observed running
 successfully here; live battle/save functionality remains original.
+
+## Phase 34 — bridge to live original run availability (read-only)
+
+`selectAvailablePokemonEncounters(runEncounters, availableSketches)`
+now joins one previously rolled Pokémon snapshot with the actual
+Zustand `availableSketches` array via the inherited original
+template ID. It preserves multiple Pokémon using one original
+template and never rerolls on filtering or combat entry.
+
+Added a unit test for shared-template selection and a Chromium smoke
+assertion that reads `liveGame.u.getState().availableSketches` and
+projects a provisional Pokémon preview onto it. Four per-run test
+blocks were invoked in a JavaScript isolate successfully.
+
+**Still NOT activated as live selectable Pokémon.** The compiled
+original attack/reward/catalog paths use original sketch IDs and
+cannot safely accept `dex-*` combat IDs without migrating all
+call sites and saves. The original live `availableSketches` array,
+combat actions and save schema remain unchanged. Template assignments
+are provisional. Full Playwright smoke result not yet observed.
