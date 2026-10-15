@@ -2,8 +2,8 @@
  * PokéLoop 2 combat encounter boundary.
  *
  * This is an isolated, side-effect-free model of the original Rejected Draft
- * challengeSketch encounter initialization. It is NOT wired into the current
- * minified bundle yet.
+ * challengeSketch encounter initialization. The extracted function is now
+ * called from the development branch's bundled challengeSketch action.
  *
  * Original behavior: a chained fight may carry player HP and status stacks.
  * PokéLoop rule: carry remaining HP on chained fights, but reset ALL temporary
