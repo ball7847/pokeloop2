@@ -25,8 +25,8 @@ try {
 
   // Real DOM integration: the Pokémon panel must mount beside the app.
   stage = 'Pokémon panel mount';
-  await page.waitForSelector('#pokeloop-pokemon-panel button', {timeout:15000});
-  await page.locator('#pokeloop-pokemon-panel button').first().click();
+  await page.waitForSelector('#pokeloop-pokemon-panel button:not([disabled])', {timeout:15000});
+  await page.locator('#pokeloop-pokemon-panel button:not([disabled])').first().click();
   const panelCheck=await page.evaluate(()=>{
     const panel=document.querySelector('#pokeloop-pokemon-panel');
     return panel?.querySelector('button')?.getAttribute('aria-expanded')==='true' &&
