@@ -5,7 +5,7 @@ import { baseEffectiveness, assimilationMultiplier } from '../pokeloop/core.js';
  * This returns a multiplier only; the combat resolver remains responsible for
  * its existing crit/armor/absorb/status/counter ordering and Decimal math.
  *
- * Player (Ditto) auto-attacks use its fixed Normal-type attack. No move slots.
+ * No attack type is invented for Ditto or the enemy. No move slots.
  * An enemy with no approved Pokémon assignment returns neutral multiplier,
  * so every unconverted Rejected Draft enemy stays unchanged.
  *
@@ -16,6 +16,7 @@ import { baseEffectiveness, assimilationMultiplier } from '../pokeloop/core.js';
 export function originalAutoAttackTypeMultiplier({
   attackerSide,
   enemyPokemonTypes = null,
+  attackType = null,
   dittoAssimilation = null,
 }) {
   if (attackerSide !== 'player' && attackerSide !== 'enemy') {
@@ -27,9 +28,9 @@ export function originalAutoAttackTypeMultiplier({
       new Set(enemyPokemonTypes).size !== enemyPokemonTypes.length) {
     throw new TypeError('Expected one or two distinct enemy Pokémon types');
   }
-  if (dittoAssimilation == null) return 1; // Not yet unlocked/configured.
+  if (dittoAssimilation == null || attackType == null) return 1; // No guess.
   if (attackerSide === 'player') {
-    return baseEffectiveness('normal', enemyPokemonTypes) *
+    return baseEffectiveness(attackType, enemyPokemonTypes) *
       assimilationMultiplier(dittoAssimilation, enemyPokemonTypes, 'attack');
   }
   // Enemy auto-attack has not been assigned one attack type per Pokémon.
