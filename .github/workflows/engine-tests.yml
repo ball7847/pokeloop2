@@ -8,6 +8,7 @@ on:
     paths:
       - 'src/engine/**'
       - 'src/pokemon/**'
+      - 'src/pokeloop/**'
       - 'assets/data-sketches-B3moo1Ps.js'
       - 'tests/**'
       - 'assets/game-store-DKXacG7P.js'
@@ -30,6 +31,10 @@ jobs:
           done
       - name: Run all isolated combat tests
         run: node --test tests/combat/*.test.mjs tests/pokemon/*.test.mjs
+      - name: Validate original agreed PokéLoop rules
+        run: |
+          node src/pokeloop/core.test.mjs
+          node src/pokeloop/pokemon.test.mjs
       - name: Check combat integration call sites
         run: |
           node tests/integration/combatBundle.test.mjs
