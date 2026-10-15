@@ -33,10 +33,9 @@ try {
     // The gallery and battle views consume the same catalog objects.
     const { a: sketchCatalog } = await import('./assets/data-sketches-B3moo1Ps.js');
     const prototype = sketchCatalog['stick man'];
-    if (prototype?.name !== '이상해씨 · 풀/독' ||
-        prototype.pokemon?.slug !== 'bulbasaur' ||
+    if (prototype?.name !== 'Stick Man' ||
         !prototype.stats?.maxHp || prototype.id !== 'stick man' ||
-        'moves' in prototype.pokemon) {
+        Object.hasOwn(prototype, 'pokemon')) {
       throw new Error('Prototype name/types not integrated into live sketch catalog');
     }
     // The real app's Zustand store is exposed by its existing compiled export
