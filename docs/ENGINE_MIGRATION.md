@@ -295,3 +295,21 @@ paths and is wired into GitHub Actions. It is not an executed
 end-to-end victory simulation. The Chromium job still needs a
 confirmed passing run, and reward calculations / auto battle outcomes
 need hands-on regression.
+
+## Phase 20 — first ten-Pokémon prototype data (not yet rendered)
+
+Added `src/pokemon/prototypeRoster.mjs` with ten unevolved species,
+canonical type arrays, and a temporary one-to-one mapping to the first
+ten original enemy templates. All ten template IDs were checked against
+the source data-sketches catalog and were found.
+
+The `overlayPrototypePokemon` helper changes presentation fields only,
+while leaving the template ID, rarity, original stat object and rewards
+untouched. This is a design safeguard for future UI integration; it has
+**not** yet been connected to the game's gallery, spawning or combat UI.
+
+Added `tests/pokemon/prototypeRoster.test.mjs` and included it in the
+CI workflow. Roster pairings are explicitly temporary, awaiting
+playtesting and later per-planet 1:N species selection.
+
+No type-effectiveness bonus or evolutionary spawn replacement is active.
