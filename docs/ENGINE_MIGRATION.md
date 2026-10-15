@@ -578,3 +578,28 @@ push CI nor a successful browser run has been verified.
 Updated the CI workflow to print the static server log and publish both
 its server log and browser screenshot when the Chromium job fails.
 Existing branch push triggers remain intact.
+
+## Phase 33 — per-run Pokémon encounter adapter, with original combat preserved
+
+Added `src/pokeloop/runEncounters.js`: a Redraw snapshot builder
+that uses the existing `src/pokeloop/pokemon.js` independent roll
+and its already provisional rarity-matched template allocation.
+Each selected species becomes a separate `dex-*` encounter view,
+even if multiple species reuse the same original template.
+Original reference stats and reward objects are passed through,
+the source catalog is untouched, and evolved forms/bosses remain
+ineligible. An encounter lookup does not re-roll.
+
+Added `tests/pokemon/runEncounters.test.mjs` (three tests).
+These tests were evaluated directly against fetched source in a
+JavaScript execution isolate; all three passed. Also expanded
+`tests/integration/browserSmoke.mjs` to create snapshots using
+the real compiled sketch catalog during its next Chromium run and
+check that the original enemy objects are unmodified.
+
+**Important:** this is NOT yet wired to the live Zustand
+`availableSketches` state or redraw persistence. The 29-species
+roster/template allocation remains provisional and must not be
+presented as approved or as a working playable Pokédex.
+The browser smoke test was changed but has not been observed running
+successfully here; live battle/save functionality remains original.
