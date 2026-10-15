@@ -119,3 +119,26 @@ and no Pokémon type multiplier has been added.
 The CI integration-test assertions were corrected to tolerate multiple
 imports in the damage resolver bundle instead of requiring a specific
 import to come first. Tests and browser play still require a confirmed run.
+
+## Phase 10 — Absorb and critical-hit inspection
+
+The primary-hit function `Aa` applies critical-hit and glancing-blow
+logic **before** Dodge, Parry, Block, Armor, and Absorb. A normal critical
+hit uses `critDmg` (default 150%) and may apply a defender-related
+modifier; GlancingBlow can instead halve the hit. Accuracy can amplify
+damage to 150% when it bypasses a dodge/parry. Changing this calculation
+without verifying those branches risks combat balance.
+
+The original Absorb stage runs **after Armor**, and subtracts
+`damage * min(absorb,100)/100` whenever effective Absorb is positive.
+Surrealism can bypass Absorb. Its calculation is now in
+`src/engine/combat/absorbMitigation.mjs`, integrated into the compiled
+primary-hit function without altering the existing logs or stage order.
+
+The independent tests cover 25%, 100%+, and zero-damage conditions.
+Integration tests assert the Absorb callsite. Tests have been **written,
+not independently confirmed passing**; actual browser play and other
+attack paths remain unverified.
+
+**Next gate:** run CI successfully and smoke-test encounter flow in a
+real browser before expanding into Pokémon mechanics.
