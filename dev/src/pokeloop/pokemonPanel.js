@@ -111,14 +111,19 @@ function render() {
   }
   root.append(list);
 }
+let subscribed = false;
 export function mountPokemonPanel(){
-  if(document.getElementById(ROOT_ID)) return;
-  const root=document.createElement('section');
-  root.id=ROOT_ID;
+  let root=document.getElementById(ROOT_ID);
+  if(!root){
+    root=document.createElement('section');
+    root.id=ROOT_ID;
+    document.body.append(root);
+  }
   root.setAttribute('aria-label','포켓몬 등장 후보');
-  root.style.cssText='position:fixed;right:12px;bottom:12px;z-index:99;max-width:min(92vw,330px);padding:8px;background:#f5f0e5;color:#222;border:1px solid #555;box-shadow:0 2px 8px #0005;font:14px sans-serif;';
-  document.body.append(root);
+  root.style.cssText='position:fixed;right:12px;bottom:12px;z-index:2147483647;max-width:min(92vw,330px);padding:8px;background:#f5f0e5;color:#222;border:1px solid #555;box-shadow:0 2px 8px #0005;font:14px sans-serif;';
   render();
+  if(subscribed) return;
+  subscribed=true;
   let prevKey=currentKey(store.getState());
   let prevAvailable=(store.getState().availableSketches||[]).join('|');
   store.subscribe(state=>{
@@ -131,7 +136,5 @@ export function mountPokemonPanel(){
     }
   });
 }
-if(typeof document!=='undefined'){
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountPokemonPanel,{once:true});
-  else mountPokemonPanel();
-}
+// The bootstrap in index.html loads this module and calls mountPokemonPanel.
+// Avoid an unhandled auto-mount before the host can report errors.

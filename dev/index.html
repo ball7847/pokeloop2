@@ -37,7 +37,6 @@
   </script>
   <title>Rejected Draft</title>
   <script type="module" crossorigin src="./assets/main-DksMQC7H.js"></script>
-  <script type="module" src="./src/pokeloop/pokemonPanel.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/index-BRULzdMO.js">
   <link rel="modulepreload" crossorigin href="./assets/vendor-Bg7E4MMW.js">
   <link rel="modulepreload" crossorigin href="./assets/data-sketches-B3moo1Ps.js">
@@ -51,6 +50,27 @@
 
 <body>
   <div id="root"></div>
+  <section id="pokeloop-pokemon-panel" aria-label="포켓몬 등장 후보"
+    style="position:fixed;right:12px;bottom:12px;z-index:2147483647;max-width:min(92vw,330px);padding:8px;background:#f5f0e5;color:#222;border:1px solid #555;box-shadow:0 2px 8px #0005;font:14px sans-serif">
+    <button type="button" disabled>포켓몬 후보 불러오는 중…</button>
+  </section>
+  <script>
+    // Render a visible host before loading optional game modules.
+    // A load failure must never look like the panel was not deployed.
+    (async () => {
+      const host = document.getElementById('pokeloop-pokemon-panel');
+      try {
+        const panel = await import('./src/pokeloop/pokemonPanel.js?v=20261016-1');
+        panel.mountPokemonPanel();
+      } catch (error) {
+        console.error('[PokéLoop Pokémon panel] failed to load:', error);
+        const detail = document.createElement('p');
+        detail.textContent = '포켓몬 패널 실행 오류: ' + (error?.message || String(error));
+        detail.style.cssText = 'max-width:300px;overflow-wrap:anywhere;font-size:12px;';
+        host.replaceChildren(detail);
+      }
+    })();
+  </script>
 </body>
 
 </html>
