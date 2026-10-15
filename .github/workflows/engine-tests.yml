@@ -9,6 +9,7 @@ on:
       - 'src/engine/**'
       - 'tests/**'
       - 'assets/game-store-DKXacG7P.js'
+      - 'assets/data-skill-tree-DvCthzIY.js'
       - '.github/workflows/engine-tests.yml'
   workflow_dispatch:
 
@@ -20,20 +21,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check syntax of extracted module and tests
+      - name: Check JavaScript syntax
         run: |
-          node --check src/engine/combat/createEncounterState.mjs
-          node --check tests/combat/createEncounterState.test.mjs
-          node --check assets/game-store-DKXacG7P.js
-      - name: Run encounter tests
+          for file in src/engine/combat/*.mjs tests/combat/*.mjs assets/game-store-DKXacG7P.js; do
+            node --check "$file"
+          done
+      - name: Run all isolated combat tests
         run: node --test tests/combat/*.test.mjs
-      - name: Validate integration import path and single call site
-        run: |
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          import assert from 'node:assert/strict';
-          const bundle = fs.readFileSync('assets/game-store-DKXacG7P.js','utf8');
-          assert.match(bundle, /^import\{createEncounterState\}from"\.\.\/src\/engine\/combat\/createEncounterState\.mjs";/);
-          assert.equal((bundle.match(/combatState:createEncounterState\(/g)||[]).length,1);
-          console.log('Integration link verified');
-          NODE
+      - name: Check combat integration call sites
+        run: node tests/integration/combatBundle.test.mjs
