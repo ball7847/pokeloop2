@@ -121,7 +121,29 @@ try {
       if (Object.keys(combat.statuses.player).length || Object.keys(combat.statuses.enemy).length) {
         throw new Error('Live chained battle inherited temporary statuses');
       }
-      return { enemyId, hpCarryover: true, stacksReset: true };
+      // Manual rematches must reset HP as well as transient statuses.
+      // Seed a completed battle to bypass the in-fight guard.
+      store.setState({
+        combatState: {
+          ...combat,
+          isFighting: false,
+          currentPlayerHp: snapshot.playerStats.maxHp.times(0.25),
+          statuses: { player: { Haste: 500 }, enemy: { Burn: 20 } },
+        },
+        challengeCooldownUntil: 0,
+      });
+      store.getState().challengeSketch(enemyId, false);
+      const manual = store.getState().combatState;
+      if (!manual.isFighting || manual.enemyId !== enemyId) {
+        throw new Error('Live manual rematch failed to begin');
+      }
+      if (!manual.currentPlayerHp.eq(snapshot.playerStats.maxHp)) {
+        throw new Error('Manual rematch must start at maximum HP');
+      }
+      if (Object.keys(manual.statuses.player).length || Object.keys(manual.statuses.enemy).length) {
+        throw new Error('Manual rematch inherited temporary statuses');
+      }
+      return { enemyId, hpCarryover: true, stacksReset: true, manualRematch: true };
     } finally {
       // Prevent side effects from polluting later tests in this fresh context.
       store.setState(snapshot, true);
