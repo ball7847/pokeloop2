@@ -335,3 +335,25 @@ contains the species name, type labels, original ID and combat stats.
 GitHub Actions checks the syntax of the modified catalog as well.
 A complete browser gameplay pass remains unconfirmed; Pokémon moves,
 type effectiveness, and evolution are not yet active.
+
+## Phase 22 — full Pokémon type effectiveness core
+
+Added `src/pokemon/typeEffectiveness.mjs`: the full 18-type modern
+attacking matchup chart with single- and dual-defender effectiveness,
+4×/¼× interactions, and absolute immunities. Unknown or duplicate
+defending type input is rejected. The matching Node tests are in
+`tests/pokemon/typeEffectiveness.test.mjs`, already selected by the
+existing `tests/pokemon/*.test.mjs` CI configuration.
+
+The module source was fetched from the development branch and executed
+in an isolated JS environment: all 324 single-type combinations and
+six representative dual/immunity cases were checked successfully.
+These representative checks **do not** prove GitHub Actions or
+Chromium has passed.
+
+**Not implemented:** move-specific attacking types, STAB, Ditto's
+assimilation multiplier, actual damage-pipeline integration, Pokémon
+move selection or evolution. Do not apply the effectiveness factor to
+the entire combat resolver wrapper, because it also handles counters,
+reflections and unrelated status damage. Attach it at the individual
+typed-hit stage once that mechanic is specified and verified.
