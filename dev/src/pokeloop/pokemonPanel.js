@@ -68,6 +68,16 @@ function loadOrRoll(state) {
   } catch {}
 }
 
+// The original React battle widget reads this resolver when rendering the
+// enemy's name and sprite. Keep identity separate from combat template IDs.
+if (typeof window !== 'undefined') {
+  window.__pokeloopBattleSpecies = (enemyId) => {
+    if (!enemyId) return null;
+    if (selectedPokemon?.templateId === enemyId) return selectedPokemon;
+    return (snapshot || []).find(p => p.templateId === enemyId) || null;
+  };
+}
+
 function label(p) {
   return p.name + ' · ' + p.types.map(t => TYPE_LABELS[t] ?? t).join('/');
 }
