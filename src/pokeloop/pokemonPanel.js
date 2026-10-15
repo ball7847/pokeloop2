@@ -174,9 +174,9 @@ export function mountPokemonPanel(){
     const key=currentKey(state);
     const ids=(state.availableSketches||[]).join('|');
     if(key!==prevKey || ids!==prevAvailable){
+      if (key !== prevKey) selectedPokemon = null;
       prevKey=key;
       prevAvailable=ids;
-      selectedPokemon = key !== prevKey ? null : selectedPokemon;
       render();
     }
     if(state.combatState !== prevCombat){
