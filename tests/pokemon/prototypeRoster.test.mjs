@@ -2,8 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prototypePokemon, getPrototypePokemon, overlayPrototypePokemon } from '../../src/pokemon/prototypeRoster.mjs';
 
-test('exactly ten unique unevolved prototype species and ten template IDs', () => {
-  assert.equal(prototypePokemon.length, 10);
+test('draft roster has no evolved Pikachu and unique IDs', () => {
+  assert.equal(prototypePokemon.length, 9);
+  assert.ok(!prototypePokemon.some(p => p.slug === 'pikachu'));
+  assert.ok(!prototypePokemon.some(p => p.id === 25));
   assert.equal(new Set(prototypePokemon.map(x => x.id)).size, 10);
   assert.equal(new Set(prototypePokemon.map(x => x.templateId)).size, 10);
   assert.ok(prototypePokemon.every(x => x.types.length >= 1 && x.types.length <= 2));
