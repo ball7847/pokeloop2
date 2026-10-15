@@ -230,6 +230,21 @@ try {
   });
   console.log('Live next-encounter queue verified:', JSON.stringify(queued));
 
+  // Reload in the same disposable context to catch broken app startup after
+  // initialization/storage access. This is NOT a full save round-trip test.
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.waitForFunction(() => {
+    const root = document.querySelector('#root');
+    return root && root.textContent?.trim().length > 30;
+  }, null, { timeout: 30000 });
+  const persistedStoreBoot = await page.evaluate(async () => {
+    const { u: store } = await import('./assets/game-store-DKXacG7P.js');
+    const state = store.getState();
+    return typeof state?.challengeSketch === 'function' &&
+      Boolean(state?.combatState);
+  });
+  if (!persistedStoreBoot) throw new Error('Game store failed to initialize after reload');
+
   if (errors.length) throw new Error(errors.join('\n'));
   console.log(`Chromium smoke passed: visible app root, ${moduleResults.modules} engine modules, ${moduleResults.checks} runtime checks`);
 } catch (error) {
