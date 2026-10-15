@@ -15,7 +15,8 @@
    Its formula is extracted from the original combat tick and preserves:
    Slow, Haste, BananaSlip, Flow State, first-attack gating,
    and glossary-unlock gating.
-3. Pure-module tests in `tests/combat/` cover encounter boundaries and
+3. `enemyAttackTiming.mjs` now calculates the enemy attack interval using the original Slow/Haste/BananaSlip order. The combat tick on the development branch calls it directly.
+4. Pure-module tests in `tests/combat/` cover encounter boundaries and
    player attack timing; `.github/workflows/engine-tests.yml` is configured
    to run Node syntax checks and tests on supported events.
 
@@ -23,9 +24,9 @@
 
 - GitHub commits and content presence have been confirmed. An actual
   successful CI run or in-browser playtest has **not** yet been verified.
-- Only two targeted pieces have been extracted. Enemy attack timing,
-  damage calculation, status application, rewards, save/load and all
-  other combat logic still live in the original compiled bundle.
+- Three targeted pieces have been extracted. Damage calculation,
+  status application, rewards, save/load and remaining combat logic still live
+  in the original compiled bundle.
 - Future changes should preserve the original encounter data shape and
   all high-precision numerical values.
 
