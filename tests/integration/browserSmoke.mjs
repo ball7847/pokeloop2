@@ -30,6 +30,14 @@ try {
       import('./src/engine/combat/resolveCombatHit.mjs'),
     ]);
     const [enc, player, enemy, inspiration, variance, armor, absorb, hit] = modules;
+    // The gallery and battle views consume the same catalog objects.
+    const { a: sketchCatalog } = await import('./assets/data-sketches-B3moo1Ps.js');
+    const prototype = sketchCatalog['stick man'];
+    if (prototype?.name !== '이상해씨 · 풀/독' ||
+        prototype.pokemon?.slug !== 'bulbasaur' ||
+        !prototype.stats?.maxHp || prototype.id !== 'stick man') {
+      throw new Error('Prototype name/types not integrated into live sketch catalog');
+    }
     // The real app's Zustand store is exposed by its existing compiled export
     // ('u' in this build). Assert that the live game initialized instead of
     // only checking that unrelated helper modules import.
