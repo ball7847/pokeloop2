@@ -623,3 +623,32 @@ cannot safely accept `dex-*` combat IDs without migrating all
 call sites and saves. The original live `availableSketches` array,
 combat actions and save schema remain unchanged. Template assignments
 are provisional. Full Playwright smoke result not yet observed.
+
+## Phase 35 — playable provisional Pokémon encounter panel (development only)
+
+The feature branch now loads `src/pokeloop/pokemonPanel.js` from
+`index.html` alongside the original Rejected Draft UI. It creates
+a labelled **provisional** Pokémon list, uses existing
+`src/pokeloop/pokemon.js` rarity rolls once per Redraw/run key,
+and saves the selected species IDs in separate localStorage. It reads
+the live Zustand `availableSketches` array, shows Pokémon names and
+type labels, and starts the original `challengeSketch(templateId)`
+action on a Pokémon selection. As a result the original template
+combat, stat and reward IDs remain unchanged, and multiple Pokémon
+may share a single original enemy pattern.
+
+`tests/integration/browserSmoke.mjs` now checks that the real DOM
+panel mounts and expands; its syntax was checked in a JS isolate.
+This is not yet a successful observed Chromium browser run.
+`main` and `pokeloop-dev` are untouched.
+
+Limitations: the mapping remains **provisional**; this is a separately
+labelled panel rather than a full replacement of every original game
+gallery/glossary/monster name. The per-run snapshot is stored under a
+new localStorage key rather than migrated into the original encrypted
+save format; cross-device / import-export save compatibility has not
+been verified. Redraw is keyed to save-slot/universe/redrawCount but
+the UI needs an actual browser test across those changes before
+claiming completed persistence. No type/assimilation combat damage
+changes have been made, as the exact agreed single calculation rule
+has not been recovered.
