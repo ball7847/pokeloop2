@@ -406,3 +406,29 @@ all CI/browser regression and save/load verification.
 
 This section supersedes earlier Phase 20/21 language claiming live
 Pokémon labels, and the previous prototype test expectation of ten.
+
+## Phase 26 — design invariants and approved cosmology
+
+**Actual changes:**
+- `src/pokemon/worldLayers.mjs` now encodes the ten user-approved
+  conceptual layers as immutable data, with exactly 18 Pokémon types
+  appearing once each. The agreed `우주 여행`, `우주 여행 떠나기`,
+  `별가루 (SP)`, and separate `타입 에너지` terminology are preserved.
+- `tests/pokemon/worldLayers.test.mjs` checks the layer partition and
+  independent currencies. A fetched-source JavaScript sanity check
+  confirmed ten layers and 18 distinct types; this is not a full CI run.
+- `tests/integration/designGuards.test.mjs` is included in CI and
+  prevents accidentally reintroducing prototype four-move imports,
+  mutating original enemy names, or disconnecting the original combat
+  start function.
+
+**No new combat mechanic added.** The world-layer module is not wired into
+prestige; its purpose is to prevent further deviations from the approved
+design. The agreed attack model is still original Rejected Draft auto combat,
+with future type/assimilation modifiers but NO four-move selection.
+
+**Remaining blockers:** full CI/browser run, save compatibility, accurate
+type/assimilation integration after recovering precise original agreement,
+prototype mapping approval (nine offline placeholders), first real playable
+Pokémon visuals, layer progression, and Star Dust prestige economy. These
+must not be reported as complete.
