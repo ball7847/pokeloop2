@@ -212,3 +212,17 @@ push-triggered GitHub Actions did not execute**.
 No authenticated Chromium execution or manual gameplay result has been
 observed here. Next milestone remains confirming a green workflow and
 running real combat scenarios on a branch-isolated preview.
+
+## Phase 15 — live encounter action smoke
+
+Added an actual `challengeSketch('stick man', true)` probe to the Chromium
+smoke test. Before invoking the production store action, the test seeds
+a temporary previous-combat state (half HP, Haste 700, Inspiration 55,
+enemy Poison 4), disables discovery animations, and clears the encounter
+cooldown. It then asserts that the encounter starts, the chained HP
+persists, and both status maps are empty. The test attempts to restore
+the original store state after assertions.
+
+This verifies the live encounter action only **when the Chromium CI job
+actually runs and passes**. It is not a victory/defeat/reward/auto-next
+playtest, and a successful outcome has not yet been observed.
