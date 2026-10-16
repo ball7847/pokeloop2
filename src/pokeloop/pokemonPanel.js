@@ -13,7 +13,26 @@ const ROOT_ID = 'pokeloop-pokemon-panel';
 const STORAGE = 'pokeloop2:prototype-encounters:v1';
 const VICTORY_STORAGE = 'pokeloop2:pokemon-victories:v1';
 const victoryRecords = (() => { try { const x = JSON.parse(localStorage.getItem(VICTORY_STORAGE)); return x && typeof x === 'object' && !Array.isArray(x) ? x : {}; } catch { return {}; } })();
-function speciesVictories(slotKey, speciesId) { return victoryRecords[slotKey]?.[speciesId] || 0; }
+function victoryKey(state) {
+  return JSON.stringify([String(state.currentSaveSlot ?? 'browser'),
+    String(state.multiverse?.currentUniverseId ?? 'original')]);
+}
+// Include records written by earlier prototypes under [slot, universe, redraw] keys.
+function speciesVictories(slotKey, speciesId) {
+  let total = 0;
+  for (const [key, counts] of Object.entries(victoryRecords)) {
+    try {
+      const parsed = JSON.parse(key);
+      if (Array.isArray(parsed) && parsed.length >= 2 &&
+          parsed[0] === JSON.parse(slotKey)[0] &&
+          parsed[1] === JSON.parse(slotKey)[1]) {
+        const value = counts?.[speciesId];
+        if (Number.isSafeInteger(value) && value > 0) total += value;
+      }
+    } catch {}
+  }
+  return total;
+}
 function creditVictory(slotKey, speciesId, count) {
   if (!speciesId || !Number.isSafeInteger(count) || count <= 0) return;
   const record = victoryRecords[slotKey] ||= {};
@@ -135,7 +154,7 @@ if (typeof window !== 'undefined') {
       // Original victories are shared by every Pokémon using this template.
       // Do not represent them as per-species records.
       templateVictories: state.sketchVictories?.[p.templateId] ?? 0,
-      pokemonVictories: speciesVictories(runKey, p.id),
+      pokemonVictories: speciesVictories(victoryKey(state), p.id),
     }));
   };
   window.__pokeloopChallengePokemon = challengePokemonSpecies;
@@ -227,7 +246,7 @@ export function mountPokemonPanel(){
       // Ignore unrelated progression changes or save state replacement.
       if (Number.isSafeInteger(increase) && increase > 0 &&
           (state.combatState?.enemyId === templateId || !state.combatState?.isFighting)) {
-        creditVictory(key, activePokemon.id, increase);
+        creditVictory(victoryKey(state), activePokemon.id, increase);
       }
     }
     // Choose once per active encounter, not on every render or damage tick.
