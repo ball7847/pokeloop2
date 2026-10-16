@@ -16,6 +16,8 @@ let snapshot = null;
 let runKey = '';
 let expanded = false;
 let selectedPokemon = null;
+let activePokemon = null;
+const templateCursor = new Map();
 let lastBattleEnemyId = null;
 let lastFighting = false;
 if (typeof window !== "undefined") window.__pokeloopBattleRevision = 0;
@@ -36,6 +38,8 @@ function loadOrRoll(state) {
   if (runKey === nextKey && snapshot) return;
   runKey = nextKey;
   selectedPokemon = null;
+  activePokemon = null;
+  templateCursor.clear();
   lastBattleEnemyId = null;
   lastFighting = false;
   signalBattleIdentityChange();
@@ -85,10 +89,8 @@ if (typeof window !== 'undefined') {
     // Only display Pokémon during the matching active encounter.
     if (!state.combatState?.isFighting || state.combatState.enemyId !== enemyId) return null;
     if (!state.availableSketches?.includes(enemyId)) return null;
-    const match = selectedPokemon?.templateId === enemyId &&
-      snapshot?.some(p => p.id === selectedPokemon.id)
-      ? selectedPokemon
-      : (snapshot || []).find(p => p.templateId === enemyId);
+    const match = activePokemon?.templateId === enemyId &&
+      snapshot?.some(p => p.id === activePokemon.id) ? activePokemon : null;
     return match ? { ...match, battleLabel: label(match) } : null;
   };
 }
@@ -133,6 +135,7 @@ function render() {
       if (!now.availableSketches?.includes(p.templateId)) return;
       if (!originalCatalog[p.templateId]) return;
       selectedPokemon = p;
+      activePokemon = p;
       signalBattleIdentityChange();
       // Keep the original template for damage, timing, and reward calculations.
       // Clear the choice if the original store rejects the challenge.
@@ -140,9 +143,9 @@ function render() {
       const after = store.getState();
       if (!after.combatState?.isFighting || after.combatState.enemyId !== p.templateId) {
         selectedPokemon = null;
+        activePokemon = null;
         signalBattleIdentityChange();
       }
-      render();
       render();
     });
     list.append(row);
@@ -172,19 +175,31 @@ export function mountPokemonPanel(){
     const enemyId=state.combatState?.enemyId ?? null;
     const fighting = !!state.combatState?.isFighting;
     const battleChanged = enemyId !== lastBattleEnemyId || fighting !== lastFighting;
-    // The source store owns the actual encounter. Never let a previous manual
-    // choice leak into a new enemy or subsequent automatic challenge.
-    if (selectedPokemon && ((!fighting && lastFighting) ||
-        (fighting && enemyId !== selectedPokemon.templateId))) {
-      selectedPokemon = null;
+    // Choose once per active encounter, not on every render or damage tick.
+    // When species share an original template, cycle deterministically through
+    // that Redraw's eligible species without running a new rarity roll.
+    if (battleChanged) {
+      if (!fighting) {
+        selectedPokemon = null;
+        activePokemon = null;
+      } else if (selectedPokemon?.templateId === enemyId &&
+          snapshot?.some(p => p.id === selectedPokemon.id)) {
+        activePokemon = selectedPokemon;
+      } else {
+        selectedPokemon = null;
+        const candidates = available(state).filter(p => p.templateId === enemyId);
+        const cursor = templateCursor.get(enemyId) || 0;
+        activePokemon = candidates.length ? candidates[cursor % candidates.length] : null;
+        if (candidates.length) templateCursor.set(enemyId, cursor + 1);
+      }
       signalBattleIdentityChange();
     }
     lastBattleEnemyId = enemyId;
     lastFighting = fighting;
-    if (battleChanged) signalBattleIdentityChange();
     if (key!==prevKey || ids!==prevAvailable){
       if (key !== prevKey || (selectedPokemon && !state.availableSketches?.includes(selectedPokemon.templateId))) {
         selectedPokemon = null;
+        activePokemon = null;
         signalBattleIdentityChange();
       }
       prevKey=key;
