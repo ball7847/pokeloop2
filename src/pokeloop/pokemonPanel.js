@@ -11,6 +11,16 @@ import { a as originalCatalog } from '../../assets/data-sketches-B3moo1Ps.js';
 
 const ROOT_ID = 'pokeloop-pokemon-panel';
 const STORAGE = 'pokeloop2:prototype-encounters:v1';
+const VICTORY_STORAGE = 'pokeloop2:pokemon-victories:v1';
+const victoryRecords = (() => { try { const x = JSON.parse(localStorage.getItem(VICTORY_STORAGE)); return x && typeof x === 'object' && !Array.isArray(x) ? x : {}; } catch { return {}; } })();
+function speciesVictories(slotKey, speciesId) { return victoryRecords[slotKey]?.[speciesId] || 0; }
+function creditVictory(slotKey, speciesId, count) {
+  if (!speciesId || !Number.isSafeInteger(count) || count <= 0) return;
+  const record = victoryRecords[slotKey] ||= {};
+  record[speciesId] = (record[speciesId] || 0) + count;
+  try { localStorage.setItem(VICTORY_STORAGE, JSON.stringify(victoryRecords)); } catch {}
+  window.dispatchEvent(new Event('pokeloop:gallery-ready'));
+}
 const lookup = new Map(POKEMON.map(p => [p.id,p]));
 let snapshot = null;
 let runKey = '';
@@ -125,6 +135,7 @@ if (typeof window !== 'undefined') {
       // Original victories are shared by every Pokémon using this template.
       // Do not represent them as per-species records.
       templateVictories: state.sketchVictories?.[p.templateId] ?? 0,
+      pokemonVictories: speciesVictories(runKey, p.id),
     }));
   };
   window.__pokeloopChallengePokemon = challengePokemonSpecies;
@@ -197,12 +208,22 @@ export function mountPokemonPanel(){
     if (first) templateCursor.set(lastBattleEnemyId, 1);
     signalBattleIdentityChange();
   }
-  store.subscribe(state=>{
+  store.subscribe((state, previous)=>{
     const key=currentKey(state);
     const ids=(state.availableSketches||[]).join('|');
     const enemyId=state.combatState?.enemyId ?? null;
     const fighting = !!state.combatState?.isFighting;
     const battleChanged = enemyId !== lastBattleEnemyId || fighting !== lastFighting;
+    // A positive original-template victory delta is the authoritative win signal.
+    // Attribute it to the species pinned for the previous/current encounter,
+    // before the store transitions to the next automatic target.
+    if (key === prevKey && previous?.sketchVictories && activePokemon && lastFighting) {
+      const templateId = activePokemon.templateId;
+      const oldWins = Number(previous.sketchVictories[templateId] || 0);
+      const newWins = Number(state.sketchVictories?.[templateId] || 0);
+      const increase = newWins - oldWins;
+      if (Number.isSafeInteger(increase) && increase > 0) creditVictory(key, activePokemon.id, increase);
+    }
     // Choose once per active encounter, not on every render or damage tick.
     // When species share an original template, cycle deterministically through
     // that Redraw's eligible species without running a new rarity roll.
