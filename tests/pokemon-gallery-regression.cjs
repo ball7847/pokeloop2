@@ -53,6 +53,7 @@ assert.equal(app.win.__pokeloopGalleryRoster().find(x=>x.id==='dex-2').pokemonVi
 assert.equal(app.win.__pokeloopGalleryRoster().find(x=>x.id==='dex-1').pokemonVictories,0);
 assert.equal(app.win.__pokeloopBattleSpecies('template'),null,'no stale battle identity');
 app.change({redrawCount:1,sketchVictories:{template:0}});
+app.win.__pokeloopGalleryRoster(); // Roster is loaded lazily on Gallery read.
 assert.equal(app.rolls,2,'roll only once for new redraw');
 assert.equal(app.win.__pokeloopGalleryRoster().find(x=>x.id==='dex-2').pokemonVictories,1,
   'win history survives redraw');
