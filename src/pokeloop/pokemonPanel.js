@@ -118,8 +118,14 @@ if (typeof window !== 'undefined') {
   window.__pokeloopGalleryRoster = () => {
     const state = store.getState();
     loadOrRoll(state);
-    return available(state).map(p => ({ id: p.id, dex: p.dex, name: p.name,
-      types: p.types.map(t => TYPE_LABELS[t] ?? t), templateId: p.templateId }));
+    return available(state).map(p => ({
+      id: p.id, dex: p.dex, name: p.name, rarity: p.rarity,
+      types: p.types.map(t => TYPE_LABELS[t] ?? t),
+      templateId: p.templateId,
+      // Original victories are shared by every Pokémon using this template.
+      // Do not represent them as per-species records.
+      templateVictories: state.sketchVictories?.[p.templateId] ?? 0,
+    }));
   };
   window.__pokeloopChallengePokemon = challengePokemonSpecies;
 }
