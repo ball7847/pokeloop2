@@ -124,12 +124,22 @@ if (typeof window !== 'undefined') {
   };
 }
 
+function battleEligibility(state, templateId) {
+  if (state.combatState?.isFighting) return '전투 중';
+  if (Number(state.challengeCooldownUntil || 0) > Date.now()) return '대기 중';
+  if (state.combatDiscoveryAnimation?.blocking) return '전투 전환 중';
+  const wins = Number(state.sketchVictories?.[templateId] || 0);
+  const limit = Number(state.fundamentals?.maxVictories ?? Infinity);
+  if (Number.isFinite(limit) && wins >= limit) return '승리 한도';
+  return null;
+}
+
 // Shared gallery/panel entry point: species IDs stay separate from templates.
 export function challengePokemonSpecies(speciesId) {
   const state = store.getState();
   loadOrRoll(state);
   const species = available(state).find(p => p.id === speciesId);
-  if (!species || !originalCatalog[species.templateId]) return false;
+  if (!species || !originalCatalog[species.templateId] || battleEligibility(state, species.templateId)) return false;
   selectedPokemon = species;
   activePokemon = species;
   signalBattleIdentityChange();
@@ -155,6 +165,8 @@ if (typeof window !== 'undefined') {
       // Do not represent them as per-species records.
       templateVictories: state.sketchVictories?.[p.templateId] ?? 0,
       pokemonVictories: speciesVictories(victoryKey(state), p.id),
+      maxVictories: Number(state.fundamentals?.maxVictories ?? 0),
+      battleBlocked: battleEligibility(state, p.templateId),
     }));
   };
   window.__pokeloopChallengePokemon = challengePokemonSpecies;
