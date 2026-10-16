@@ -7,7 +7,7 @@ const path = require('node:path');
 const source = fs.readFileSync(path.join(__dirname, '../src/pokeloop/pokemonPanel.js'), 'utf8')
   .replace(/^import .+;\r?\n/gm, '')
   .replace(/export function /g, 'function ');
-const create = new Function('POKEMON','rollRunRoster','TYPE_LABELS','store','originalCatalog',
+const create = new Function('POKEMON','rollRunRoster','ORIGINAL_COMBAT_TEMPLATES','TYPE_LABELS','store','originalCatalog',
   'window','localStorage','document','Event', source +
   '\nreturn {mountPokemonPanel, challengePokemonSpecies};');
 
@@ -35,7 +35,7 @@ function setup() {
     listeners.forEach(fn=>fn(state,before));
   }
   state.challengeSketch = id=>change({combatState:{isFighting:true,enemyId:id}});
-  const bridge = create(species,()=>{rolls++;return species;},{grass:'풀',water:'물'},
+  const bridge = create(species,()=>{rolls++;return species;},[{id:'template',rarity:'scrap'}],{grass:'풀',water:'물'},
     store,{template:{stats:{maxHp:2,attack:1},rewards:[],currencyRewards:[]}},
     win,storage,{getElementById:()=>null},class TestEvent {});
   bridge.mountPokemonPanel();
