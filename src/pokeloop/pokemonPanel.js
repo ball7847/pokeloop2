@@ -169,6 +169,12 @@ export function mountPokemonPanel(){
   let prevAvailable=(store.getState().availableSketches||[]).join('|');
   lastBattleEnemyId = store.getState().combatState?.enemyId ?? null;
   lastFighting = !!store.getState().combatState?.isFighting;
+  if (lastFighting && lastBattleEnemyId) {
+    const first = available(store.getState()).find(p => p.templateId === lastBattleEnemyId);
+    activePokemon = first || null;
+    if (first) templateCursor.set(lastBattleEnemyId, 1);
+    signalBattleIdentityChange();
+  }
   store.subscribe(state=>{
     const key=currentKey(state);
     const ids=(state.availableSketches||[]).join('|');
