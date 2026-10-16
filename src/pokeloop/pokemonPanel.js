@@ -124,6 +124,19 @@ if (typeof window !== 'undefined') {
   };
 }
 
+function displayQuantity(value) {
+  if (value == null) return '?';
+  return typeof value.toString === 'function' ? value.toString() : String(value);
+}
+function originalRewards(template) {
+  if (!template) return [];
+  const stats = (template.rewards || []).map(r =>
+    (r.statName || 'stat') + ' +' + displayQuantity(r.amount));
+  const currencies = (template.currencyRewards || []).map(r =>
+    (r.name || 'currency') + ' +' + displayQuantity(r.amount));
+  return [...stats, ...currencies];
+}
+
 function battleEligibility(state, templateId) {
   if (state.combatState?.isFighting) return '전투 중';
   if (Number(state.challengeCooldownUntil || 0) > Date.now()) return '대기 중';
@@ -167,6 +180,13 @@ if (typeof window !== 'undefined') {
       pokemonVictories: speciesVictories(victoryKey(state), p.id),
       maxVictories: Number(state.fundamentals?.maxVictories ?? 0),
       battleBlocked: battleEligibility(state, p.templateId),
+      // Catalog rewards are unscaled base values; actual payouts still belong
+      // to the original game's multiplier and progression calculations.
+      baseRewards: originalRewards(originalCatalog[p.templateId]),
+      baseStats: originalCatalog[p.templateId]?.stats ? {
+        hp: displayQuantity(originalCatalog[p.templateId].stats.maxHp),
+        attack: displayQuantity(originalCatalog[p.templateId].stats.attack),
+      } : null,
     }));
   };
   window.__pokeloopChallengePokemon = challengePokemonSpecies;
