@@ -178,6 +178,7 @@ export function mountPokemonPanel(){
   root.setAttribute('aria-label','포켓몬 등장 후보');
   root.style.cssText='position:fixed;right:12px;bottom:12px;z-index:2147483647;max-width:min(92vw,330px);padding:8px;background:#f5f0e5;color:#222;border:1px solid #555;box-shadow:0 2px 8px #0005;font:14px sans-serif;';
   render();
+  window.dispatchEvent(new Event('pokeloop:gallery-ready'));
   if(subscribed) return;
   subscribed=true;
   let prevKey=currentKey(store.getState());
