@@ -48,7 +48,8 @@ assert.equal(app.win.__pokeloopGalleryRoster().length,2);
 assert.equal(app.bridge.challengePokemonSpecies('dex-2'),true);
 assert.equal(app.win.__pokeloopBattleSpecies('template')?.id,'dex-2');
 assert.match(app.win.__pokeloopBattleSpecies('template').battleLabel,/물/);
-app.change({sketchVictories:{template:1},combatState:{isFighting:false,enemyId:null}});
+// Original engine may award 2 progression victories for one actual fight.
+app.change({sketchVictories:{template:2},combatState:{isFighting:false,enemyId:null}});
 assert.equal(app.win.__pokeloopGalleryRoster().find(x=>x.id==='dex-2').pokemonVictories,1);
 assert.equal(app.win.__pokeloopGalleryRoster().find(x=>x.id==='dex-1').pokemonVictories,0);
 assert.equal(app.win.__pokeloopBattleSpecies('template'),null,'no stale battle identity');
