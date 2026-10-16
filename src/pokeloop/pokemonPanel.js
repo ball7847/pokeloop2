@@ -159,6 +159,13 @@ export function mountPokemonPanel(){
     const key=currentKey(state);
     const ids=(state.availableSketches||[]).join('|');
     const enemyId=state.combatState?.enemyId ?? null;
+    // Once the selected battle finishes, release its direct selection.
+    // Otherwise auto-combat against the SAME original template can retain
+    // the identity of an unrelated previously selected Pokémon.
+    if (selectedPokemon && !state.combatState?.isFighting && lastBattleEnemyId !== null) {
+      selectedPokemon = null;
+      signalBattleIdentityChange();
+    }
     // An automatic or gallery challenge of another template must not inherit
     // the manually chosen species from the preceding battle.
     if (enemyId !== lastBattleEnemyId) {
