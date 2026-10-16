@@ -108,6 +108,10 @@ function loadOrRoll(state) {
   } catch {}
 }
 
+function label(p) {
+  return p.name + ' · ' + p.types.map(t => TYPE_LABELS[t] ?? t).join('/');
+}
+
 // The original React battle widget reads this resolver when rendering the
 // enemy's name and sprite. Keep identity separate from combat template IDs.
 if (typeof window !== 'undefined') {
