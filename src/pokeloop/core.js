@@ -14,10 +14,10 @@ export const TYPE_LABELS = Object.freeze({
 });
 export const TIERS = Object.freeze([
   {name:"세계",types:["normal"]},
-  {name:"탄생",types:["fire","water","grass"]},
+  {name:"균형",types:["fire","water","grass"]},
   {name:"에너지",types:["electric"]},
-  {name:"생태계",types:["bug","flying"]},
   {name:"대지",types:["ground","rock"]},
+  {name:"생명",types:["bug","flying"]},
   {name:"전쟁",types:["fighting","psychic","dark"]},
   {name:"진보",types:["steel","poison"]},
   {name:"죽음",types:["ice","ghost"]},
