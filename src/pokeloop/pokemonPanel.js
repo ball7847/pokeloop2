@@ -76,8 +76,9 @@ function loadOrRoll(state) {
 if (typeof window !== 'undefined') {
   window.__pokeloopBattleSpecies = (enemyId) => {
     if (!enemyId) return null;
-    if (selectedPokemon?.templateId === enemyId) return selectedPokemon;
-    return (snapshot || []).find(p => p.templateId === enemyId) || null;
+    if (selectedPokemon?.templateId === enemyId) return { ...selectedPokemon, battleLabel: label(selectedPokemon) };
+    const match = (snapshot || []).find(p => p.templateId === enemyId);
+    return match ? { ...match, battleLabel: label(match) } : null;
   };
 }
 
