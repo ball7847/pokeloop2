@@ -56,7 +56,7 @@
     (async () => {
 
       try {
-        const panel = await import('./src/pokeloop/pokemonPanel.js?v=20261016-11');
+        const panel = await import('./src/pokeloop/pokemonPanel.js?v=20261016-sequential-starter');
         panel.mountPokemonPanel();
       } catch (error) {
         console.error('[PokéLoop Pokémon panel] failed to load:', error);
