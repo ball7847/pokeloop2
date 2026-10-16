@@ -16,7 +16,6 @@ let snapshot = null;
 let runKey = '';
 let expanded = false;
 let selectedPokemon = null;
-const BATTLE_ID = 'pokeloop-pokemon-battle';
 
 
 function currentKey(state) {
@@ -81,53 +80,11 @@ if (typeof window !== 'undefined') {
 function label(p) {
   return p.name + ' · ' + p.types.map(t => TYPE_LABELS[t] ?? t).join('/');
 }
-function renderBattle(state) {
-  let card = document.getElementById(BATTLE_ID);
-  const combat = state.combatState;
-  // Also resolve normal/automatic encounters, not only clicks in this panel.
-  const encountered = (snapshot || []).find(p => p.templateId === combat?.enemyId);
-  const species = selectedPokemon || encountered;
-  const fighting = Boolean(combat?.isFighting && species && combat.enemyId === species.templateId);
-  if (!species) {
-    if (card) card.remove();
-    return;
-  }
-  if (!card) {
-    card = document.createElement('aside');
-    card.id = BATTLE_ID;
-    card.setAttribute('aria-label', '현재 포켓몬 전투');
-    card.style.cssText = 'position:fixed;top:12px;right:12px;z-index:2147483646;min-width:160px;max-width:42vw;text-align:center;padding:10px;background:#f5f0e5;color:#222;border:2px solid #555;border-radius:8px;box-shadow:0 2px 12px #0008;font:14px sans-serif;pointer-events:none';
-    const name = document.createElement('strong');
-    name.dataset.field = 'name';
-    name.style.cssText = 'display:block;font-size:17px';
-    const img = document.createElement('img');
-    img.alt = species.name;
-    img.width = 112;
-    img.height = 112;
-    img.style.cssText = 'display:block;margin:auto;image-rendering:pixelated;object-fit:contain';
-    const type = document.createElement('div');
-    type.dataset.field = 'types';
-    const hp = document.createElement('div');
-    hp.dataset.field = 'hp';
-    card.append(name, img, type, hp);
-    document.body.append(card);
-  }
-  card.querySelector('[data-field=name]').textContent = species.name;
-  card.querySelector('img').alt = species.name;
-  const sprite = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + species.dex + '.png';
-  if (card.querySelector('img').getAttribute('src') !== sprite) card.querySelector('img').src = sprite;
-  card.querySelector('[data-field=types]').textContent = species.types.map(t => TYPE_LABELS[t] ?? t).join(' / ');
-  const hp = fighting ? combat.currentEnemyHp : null;
-  const textHp = hp && typeof hp.toString === 'function' ? hp.toString() : String(hp ?? '?');
-  card.querySelector('[data-field=hp]').textContent = fighting ? '전투 중 · HP ' + textHp : '선택됨 · 전투 대기';
-}
-
 function render() {
   const root = document.getElementById(ROOT_ID);
   if (!root) return;
   const state = store.getState();
   loadOrRoll(state);
-  renderBattle(state);
   root.replaceChildren();
   const button = document.createElement('button');
   button.type = 'button';
@@ -182,9 +139,6 @@ export function mountPokemonPanel(){
   subscribed=true;
   let prevKey=currentKey(store.getState());
   let prevAvailable=(store.getState().availableSketches||[]).join('|');
-  let prevCombat = store.getState().combatState;
-  let prevEnemyId = prevCombat?.enemyId;
-  let prevFighting = prevCombat?.isFighting;
   store.subscribe(state=>{
     const key=currentKey(state);
     const ids=(state.availableSketches||[]).join('|');
@@ -193,12 +147,6 @@ export function mountPokemonPanel(){
       prevKey=key;
       prevAvailable=ids;
       render();
-    }
-    if(state.combatState !== prevCombat || state.combatState?.enemyId !== prevEnemyId || state.combatState?.isFighting !== prevFighting){
-      prevCombat = state.combatState;
-      prevEnemyId = prevCombat?.enemyId;
-      prevFighting = prevCombat?.isFighting;
-      renderBattle(state);
     }
   });
 }
