@@ -192,60 +192,12 @@ if (typeof window !== 'undefined') {
   window.__pokeloopChallengePokemon = challengePokemonSpecies;
 }
 
-function label(p) {
-  return p.name + ' · ' + p.types.map(t => TYPE_LABELS[t] ?? t).join('/');
-}
-function render() {
-  const root = document.getElementById(ROOT_ID);
-  if (!root) return;
-  const state = store.getState();
-  loadOrRoll(state);
-  root.replaceChildren();
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.textContent = expanded ? '포켓몬 후보 닫기' : '포켓몬 후보 (' + available(state).length + ')';
-  button.setAttribute('aria-expanded',String(expanded));
-  button.addEventListener('click',()=>{expanded=!expanded;render();});
-  root.append(button);
-  if (!expanded) return;
-  const info=document.createElement('p');
-  info.textContent='임시 배정 · 원작 전투/보상 사용 · 진화형 제외';
-  root.append(info);
-  const list=document.createElement('div');
-  list.style.maxHeight='42vh';
-  list.style.overflowY='auto';
-  const options=available(state);
-  if (!options.length) {
-    const empty=document.createElement('p');
-    empty.textContent='이번 회차에 등장 가능한 포켓몬 후보가 없습니다.';
-    list.append(empty);
-  }
-  for(const p of options) {
-    const row=document.createElement('button');
-    row.type='button';
-    row.textContent=label(p)+' — 전투';
-    row.style.display='block';
-    row.style.margin='4px 0';
-    row.title='원작 적 전투 패턴: '+p.templateId;
-    row.addEventListener('click',()=>{
-      challengePokemonSpecies(p.id);
-      render();
-    });
-    list.append(row);
-  }
-  root.append(list);
-}
 let subscribed = false;
 export function mountPokemonPanel(){
-  let root=document.getElementById(ROOT_ID);
-  if(!root){
-    root=document.createElement('section');
-    root.id=ROOT_ID;
-    document.body.append(root);
-  }
-  root.setAttribute('aria-label','포켓몬 등장 후보');
-  root.style.cssText='position:fixed;right:12px;bottom:12px;z-index:2147483647;max-width:min(92vw,330px);padding:8px;background:#f5f0e5;color:#222;border:1px solid #555;box-shadow:0 2px 8px #0005;font:14px sans-serif;';
-  render();
+  // The original floating candidate panel is retired. This module remains the
+  // encounter/record bridge consumed by the Gallery and combat widgets.
+  document.getElementById(ROOT_ID)?.remove();
+  loadOrRoll(store.getState());
   window.dispatchEvent(new Event('pokeloop:gallery-ready'));
   if(subscribed) return;
   subscribed=true;
@@ -310,9 +262,8 @@ export function mountPokemonPanel(){
       }
       prevKey=key;
       prevAvailable=ids;
-      render();
+      window.dispatchEvent(new Event('pokeloop:gallery-ready'));
     }
   });
 }
-// The bootstrap in index.html loads this module and calls mountPokemonPanel.
-// Avoid an unhandled auto-mount before the host can report errors.
+// The bootstrap loads this bridge before the Gallery consumes its roster.
