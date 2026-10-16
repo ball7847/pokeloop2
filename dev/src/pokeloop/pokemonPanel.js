@@ -95,6 +95,35 @@ if (typeof window !== 'undefined') {
   };
 }
 
+// Shared gallery/panel entry point: species IDs stay separate from templates.
+export function challengePokemonSpecies(speciesId) {
+  const state = store.getState();
+  loadOrRoll(state);
+  const species = available(state).find(p => p.id === speciesId);
+  if (!species || !originalCatalog[species.templateId]) return false;
+  selectedPokemon = species;
+  activePokemon = species;
+  signalBattleIdentityChange();
+  state.challengeSketch(species.templateId);
+  const after = store.getState();
+  if (!after.combatState?.isFighting || after.combatState.enemyId !== species.templateId) {
+    selectedPokemon = null;
+    activePokemon = null;
+    signalBattleIdentityChange();
+    return false;
+  }
+  return true;
+}
+if (typeof window !== 'undefined') {
+  window.__pokeloopGalleryRoster = () => {
+    const state = store.getState();
+    loadOrRoll(state);
+    return available(state).map(p => ({ id: p.id, dex: p.dex, name: p.name,
+      types: p.types.map(t => TYPE_LABELS[t] ?? t), templateId: p.templateId }));
+  };
+  window.__pokeloopChallengePokemon = challengePokemonSpecies;
+}
+
 function label(p) {
   return p.name + ' · ' + p.types.map(t => TYPE_LABELS[t] ?? t).join('/');
 }
@@ -131,21 +160,7 @@ function render() {
     row.style.margin='4px 0';
     row.title='원작 적 전투 패턴: '+p.templateId;
     row.addEventListener('click',()=>{
-      const now=store.getState();
-      if (!now.availableSketches?.includes(p.templateId)) return;
-      if (!originalCatalog[p.templateId]) return;
-      selectedPokemon = p;
-      activePokemon = p;
-      signalBattleIdentityChange();
-      // Keep the original template for damage, timing, and reward calculations.
-      // Clear the choice if the original store rejects the challenge.
-      now.challengeSketch(p.templateId);
-      const after = store.getState();
-      if (!after.combatState?.isFighting || after.combatState.enemyId !== p.templateId) {
-        selectedPokemon = null;
-        activePokemon = null;
-        signalBattleIdentityChange();
-      }
+      challengePokemonSpecies(p.id);
       render();
     });
     list.append(row);
