@@ -16,6 +16,7 @@ let snapshot = null;
 let runKey = '';
 let expanded = false;
 let selectedPokemon = null;
+let lastBattleEnemyId = null;
 if (typeof window !== "undefined") window.__pokeloopBattleRevision = 0;
 function signalBattleIdentityChange() { if (typeof window !== "undefined") window.__pokeloopBattleRevision = (window.__pokeloopBattleRevision || 0) + 1; }
 
@@ -34,6 +35,7 @@ function loadOrRoll(state) {
   if (runKey === nextKey && snapshot) return;
   runKey = nextKey;
   selectedPokemon = null;
+  lastBattleEnemyId = null;
   signalBattleIdentityChange();
   // Keep each save slot / universe / redraw snapshot separately.
   // A single {key,ids} entry previously discarded the old slot on switches.
@@ -76,8 +78,14 @@ function loadOrRoll(state) {
 if (typeof window !== 'undefined') {
   window.__pokeloopBattleSpecies = (enemyId) => {
     if (!enemyId) return null;
-    if (selectedPokemon?.templateId === enemyId) return { ...selectedPokemon, battleLabel: label(selectedPokemon) };
-    const match = (snapshot || []).find(p => p.templateId === enemyId);
+    const state = store.getState();
+    loadOrRoll(state);
+    // Do not reinterpret unrelated original/boss encounters as Pokémon.
+    if (!state.availableSketches?.includes(enemyId)) return null;
+    const match = selectedPokemon?.templateId === enemyId &&
+      snapshot?.some(p => p.id === selectedPokemon.id)
+      ? selectedPokemon
+      : (snapshot || []).find(p => p.templateId === enemyId);
     return match ? { ...match, battleLabel: label(match) } : null;
   };
 }
@@ -122,6 +130,7 @@ function render() {
       if (!now.availableSketches?.includes(p.templateId)) return;
       if (!originalCatalog[p.templateId]) return;
       selectedPokemon = p;
+      lastBattleEnemyId = p.templateId;
       signalBattleIdentityChange();
       now.challengeSketch(p.templateId);
       render();
@@ -145,11 +154,25 @@ export function mountPokemonPanel(){
   subscribed=true;
   let prevKey=currentKey(store.getState());
   let prevAvailable=(store.getState().availableSketches||[]).join('|');
+  lastBattleEnemyId = store.getState().combatState?.enemyId ?? null;
   store.subscribe(state=>{
     const key=currentKey(state);
     const ids=(state.availableSketches||[]).join('|');
-    if(key!==prevKey || ids!==prevAvailable){
-      if (key !== prevKey) { selectedPokemon = null; signalBattleIdentityChange(); }
+    const enemyId=state.combatState?.enemyId ?? null;
+    // An automatic or gallery challenge of another template must not inherit
+    // the manually chosen species from the preceding battle.
+    if (enemyId !== lastBattleEnemyId) {
+      lastBattleEnemyId = enemyId;
+      if (selectedPokemon && selectedPokemon.templateId !== enemyId) {
+        selectedPokemon = null;
+        signalBattleIdentityChange();
+      }
+    }
+    if (key!==prevKey || ids!==prevAvailable){
+      if (key !== prevKey || (selectedPokemon && !state.availableSketches?.includes(selectedPokemon.templateId))) {
+        selectedPokemon = null;
+        signalBattleIdentityChange();
+      }
       prevKey=key;
       prevAvailable=ids;
       render();
