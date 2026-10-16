@@ -5,6 +5,7 @@
  * No moves and no modifications to the original combat/resolver/save schema.
  */
 import { POKEMON, rollRunRoster } from './pokemon.js';
+import { ORIGINAL_COMBAT_TEMPLATES } from './templates.js';
 import { TYPE_LABELS } from './core.js';
 import { u as store } from '../../assets/game-store-DKXacG7P.js';
 import { a as originalCatalog } from '../../assets/data-sketches-B3moo1Ps.js';
@@ -58,6 +59,23 @@ function currentKey(state) {
   const universe = state.multiverse?.currentUniverseId ?? 'original';
   return JSON.stringify([String(slot), String(universe), String(state.redrawCount ?? 0)]);
 }
+// Reassign only combat templates, never species identity or appearance odds.
+// Fill original encounter order per rarity so the first Scrap encounter has
+// an eligible Pokémon when the Redraw rolled at least one Scrap species.
+function mapRunSpeciesToOriginalOrder(species) {
+  const pools = Object.create(null);
+  for (const template of ORIGINAL_COMBAT_TEMPLATES) {
+    (pools[template.rarity] ||= []).push(template.id);
+  }
+  const next = Object.create(null);
+  return species.map(p => {
+    const pool = pools[p.rarity];
+    if (!pool?.length) return p;
+    const index = next[p.rarity] || 0;
+    next[p.rarity] = index + 1;
+    return { ...p, templateId: pool[index % pool.length] };
+  });
+}
 function available(state) {
   const ids = new Set(state.availableSketches || []);
   return (snapshot || []).filter(p => ids.has(p.templateId));
@@ -84,7 +102,7 @@ function loadOrRoll(state) {
   if (Array.isArray(records[nextKey])) {
     const candidate = records[nextKey].map(id => lookup.get(id));
     if (candidate.every(p => p && !p.evolved && !p.boss)) {
-      snapshot = candidate;
+      snapshot = mapRunSpeciesToOriginalOrder(candidate);
       return;
     }
   }
@@ -101,7 +119,7 @@ function loadOrRoll(state) {
     chances[rarity] = Number.isFinite(number)
       ? Math.min(100, Math.max(0, number)) : 0;
   }
-  snapshot = rollRunRoster({ chances });
+  snapshot = mapRunSpeciesToOriginalOrder(rollRunRoster({ chances }));
   try {
     records[nextKey] = snapshot.map(p => p.id);
     localStorage.setItem(STORAGE, JSON.stringify({ records }));
