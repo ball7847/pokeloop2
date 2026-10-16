@@ -217,12 +217,18 @@ export function mountPokemonPanel(){
     // A positive original-template victory delta is the authoritative win signal.
     // Attribute it to the species pinned for the previous/current encounter,
     // before the store transitions to the next automatic target.
-    if (key === prevKey && previous?.sketchVictories && activePokemon && lastFighting) {
+    if (key === prevKey && previous?.sketchVictories && activePokemon && lastFighting &&
+        previous.combatState?.isFighting &&
+        previous.combatState.enemyId === activePokemon.templateId) {
       const templateId = activePokemon.templateId;
       const oldWins = Number(previous.sketchVictories[templateId] || 0);
       const newWins = Number(state.sketchVictories?.[templateId] || 0);
       const increase = newWins - oldWins;
-      if (Number.isSafeInteger(increase) && increase > 0) creditVictory(key, activePokemon.id, increase);
+      // Ignore unrelated progression changes or save state replacement.
+      if (Number.isSafeInteger(increase) && increase > 0 &&
+          (state.combatState?.enemyId === templateId || !state.combatState?.isFighting)) {
+        creditVictory(key, activePokemon.id, increase);
+      }
     }
     // Choose once per active encounter, not on every render or damage tick.
     // When species share an original template, cycle deterministically through
