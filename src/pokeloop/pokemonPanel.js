@@ -16,6 +16,8 @@ let snapshot = null;
 let runKey = '';
 let expanded = false;
 let selectedPokemon = null;
+if (typeof window !== "undefined") window.__pokeloopBattleRevision = 0;
+function signalBattleIdentityChange() { if (typeof window !== "undefined") window.__pokeloopBattleRevision = (window.__pokeloopBattleRevision || 0) + 1; }
 
 
 function currentKey(state) {
@@ -31,6 +33,8 @@ function loadOrRoll(state) {
   const nextKey = currentKey(state);
   if (runKey === nextKey && snapshot) return;
   runKey = nextKey;
+  selectedPokemon = null;
+  signalBattleIdentityChange();
   // Keep each save slot / universe / redraw snapshot separately.
   // A single {key,ids} entry previously discarded the old slot on switches.
   let saved = null;
@@ -117,6 +121,7 @@ function render() {
       if (!now.availableSketches?.includes(p.templateId)) return;
       if (!originalCatalog[p.templateId]) return;
       selectedPokemon = p;
+      signalBattleIdentityChange();
       now.challengeSketch(p.templateId);
       render();
     });
@@ -143,7 +148,7 @@ export function mountPokemonPanel(){
     const key=currentKey(state);
     const ids=(state.availableSketches||[]).join('|');
     if(key!==prevKey || ids!==prevAvailable){
-      if (key !== prevKey) selectedPokemon = null;
+      if (key !== prevKey) { selectedPokemon = null; signalBattleIdentityChange(); }
       prevKey=key;
       prevAvailable=ids;
       render();
