@@ -252,7 +252,7 @@ export function mountPokemonPanel(){
       // Ignore unrelated progression changes or save state replacement.
       if (Number.isSafeInteger(increase) && increase > 0 &&
           (state.combatState?.enemyId === templateId || !state.combatState?.isFighting)) {
-        creditVictory(victoryKey(state), activePokemon.id, increase);
+        creditVictory(victoryKey(state), activePokemon.id, 1); // One defeated encounter, regardless of original bonus victories.
       }
     }
     // Choose once per active encounter, not on every render or damage tick.
